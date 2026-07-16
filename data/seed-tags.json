@@ -1,0 +1,35 @@
+{
+  "districts": {
+    "성동구": { "level": 6, "totalScore": 980, "weeklyHistory": [180, 210, 195, 220] },
+    "마포구": { "level": 7, "totalScore": 1300, "weeklyHistory": [230, 240, 250, 260] },
+    "강남구": { "level": 5, "totalScore": 820, "weeklyHistory": [200, 190, 210, 205] },
+    "종로구": { "level": 4, "totalScore": 510, "weeklyHistory": [90, 100, 85, 95] },
+    "영등포구": { "level": 3, "totalScore": 330, "weeklyHistory": [70, 65, 80, 75] },
+    "관악구": { "level": 3, "totalScore": 310, "weeklyHistory": [60, 70, 65, 60] },
+    "노원구": { "level": 2, "totalScore": 160, "weeklyHistory": [30, 35, 25, 30] },
+    "은평구": { "level": 2, "totalScore": 140, "weeklyHistory": [25, 20, 30, 25] },
+    "송파구": { "level": 4, "totalScore": 560, "weeklyHistory": [110, 105, 120, 115] },
+    "강북구": { "level": 1, "totalScore": 45, "weeklyHistory": [5, 6, 4, 5] },
+    "중구": { "level": 3, "totalScore": 290, "weeklyHistory": [55, 60, 50, 58] },
+    "구로구": { "level": 2, "totalScore": 130, "weeklyHistory": [22, 28, 24, 26] }
+  },
+  "tags": [
+    { "gu": "성동구", "lat": 37.5445, "lng": 127.0561, "text": "성수 대낮부터 웨이팅 실화냐", "resident": false, "daysAgo": 1, "reactions": { "like": 14, "funny": 6 } },
+    { "gu": "성동구", "lat": 37.5478, "lng": 127.0442, "text": "공장 개조 카페의 성지", "resident": true, "daysAgo": 2, "reactions": { "like": 9, "funny": 2 } },
+    { "gu": "성동구", "lat": 37.5502, "lng": 127.0688, "text": "팝업 아니면 못 들어가는 동네", "resident": false, "daysAgo": 0, "reactions": { "funny": 11, "like": 3 } },
+    { "gu": "마포구", "lat": 37.5561, "lng": 126.9236, "text": "홍대는 잠들지 않는다", "resident": true, "daysAgo": 1, "reactions": { "like": 12, "funny": 8 } },
+    { "gu": "마포구", "lat": 37.5495, "lng": 126.9138, "text": "합정 골목엔 숨은 바가 너무 많아", "resident": true, "daysAgo": 2, "reactions": { "like": 7 } },
+    { "gu": "강남구", "lat": 37.5006, "lng": 127.0364, "text": "점심시간 직장인 파도 조심", "resident": false, "daysAgo": 1, "reactions": { "funny": 10, "like": 4 } },
+    { "gu": "강남구", "lat": 37.5172, "lng": 127.0473, "text": "야근의 불빛이 꺼지지 않는 곳", "resident": true, "daysAgo": 0, "reactions": { "cheer": 13, "hug": 5 } },
+    { "gu": "종로구", "lat": 37.5731, "lng": 126.9853, "text": "궁궐 담벼락 산책이 최고의 힐링", "resident": true, "daysAgo": 1, "reactions": { "like": 8, "hug": 3 } },
+    { "gu": "종로구", "lat": 37.5794, "lng": 126.9968, "text": "한복 입은 사람이 더 많은 동네", "resident": false, "daysAgo": 2, "reactions": { "funny": 6, "like": 4 } },
+    { "gu": "영등포구", "lat": 37.5264, "lng": 126.8962, "text": "출근하기 싫다 여의도야", "resident": true, "daysAgo": 0, "reactions": { "hug": 12, "cheer": 7 } },
+    { "gu": "관악구", "lat": 37.4784, "lng": 126.9516, "text": "고시촌의 밤은 오늘도 밝다", "resident": true, "daysAgo": 1, "reactions": { "cheer": 15, "hug": 6 } },
+    { "gu": "노원구", "lat": 37.6543, "lng": 127.0568, "text": "학원가 앞 떡볶이 골목은 진리", "resident": true, "daysAgo": 1, "reactions": { "like": 5 } },
+    { "gu": "은평구", "lat": 37.6176, "lng": 126.9227, "text": "북한산 뷰 맛집 동네", "resident": true, "daysAgo": 2, "reactions": { "like": 4 } },
+    { "gu": "송파구", "lat": 37.5145, "lng": 127.1059, "text": "석촌호수 러닝 크루 집결지", "resident": true, "daysAgo": 0, "reactions": { "like": 10, "cheer": 4 } },
+    { "gu": "강북구", "lat": 37.6396, "lng": 127.0257, "text": "조용하던 동네에 요즘 카페가 하나둘", "resident": true, "daysAgo": 0, "reactions": { "like": 11, "funny": 2 } },
+    { "gu": "중구", "lat": 37.5609, "lng": 126.9956, "text": "을지로 골목 노포 감성은 못 참지", "resident": false, "daysAgo": 1, "reactions": { "like": 9, "funny": 3 } },
+    { "gu": "구로구", "lat": 37.4954, "lng": 126.8874, "text": "야근 후 곱창엔 소주지", "resident": true, "daysAgo": 2, "reactions": { "hug": 4, "cheer": 3 } }
+  ]
+}

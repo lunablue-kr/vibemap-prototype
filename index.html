@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>서울 바이브맵 — 프로토타입 (와이어프레임)</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./css/base.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+</head>
+<body>
+  <!-- 개발용 위치 시뮬레이션 (프로토타입 전용, 실제 앱은 위치 SDK) -->
+  <div id="dev-bar">
+    <span>🧪 위치 시뮬레이션</span>
+    <select id="dev-location"><option value="">위치 꺼짐</option></select>
+  </div>
+
+  <header id="app-header">
+    <h1 id="app-title">서울 바이브맵</h1>
+    <span class="wireframe-badge">와이어프레임</span>
+  </header>
+
+  <main>
+    <!-- 1. 메인 지도 -->
+    <section id="screen-map" class="screen">
+      <div id="map"></div>
+      <div id="action-panel" class="sheet" hidden>
+        <div class="sheet-head">
+          <strong id="action-gu-name"></strong>
+          <button id="action-close" aria-label="닫기">✕</button>
+        </div>
+        <div class="sheet-actions">
+          <button id="action-write" class="btn primary">여기에 태그 남기기</button>
+          <button id="action-detail" class="btn">구 상세 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 구 상세 -->
+    <section id="screen-district" class="screen scroll">
+      <div class="district-head">
+        <button id="district-back" class="back-btn" aria-label="지도로 돌아가기">‹ 지도</button>
+        <h2 id="district-title"></h2>
+        <span id="district-home-badge" class="home-badge" hidden>🏠 내 홈</span>
+      </div>
+      <div id="district-sort" class="sort-bar">
+        <button data-sort="popular" class="active">공감순</button>
+        <button data-sort="recent">최신순</button>
+      </div>
+      <div id="district-feed"></div>
+      <div class="write-bar">
+        <p id="district-write-hint" class="hint"></p>
+        <button id="district-write-btn" class="btn primary">태그 남기기</button>
+      </div>
+    </section>
+
+    <!-- 3. 랭킹 -->
+    <section id="screen-ranking" class="screen scroll">
+      <h2>주간 랭킹</h2>
+      <p class="hint">월~일 집계 · 일요일 밤 주간 결산 발표</p>
+      <p id="my-contribution" class="my-contribution"></p>
+      <div id="ranking-categories"></div>
+    </section>
+
+    <!-- 4. 마이 -->
+    <section id="screen-my" class="screen scroll">
+      <h2>마이</h2>
+      <div class="my-section">
+        <h3>홈 지역구</h3>
+        <p class="hint">홈 지역구에는 어디서든 태그를 남길 수 있어요<br />
+          (인증 방식은 확정 전 — 설계서 §13. 프로토타입은 자유 설정, 변경 제한 없음)</p>
+        <select id="home-gu-select"><option value="">선택 안 함</option></select>
+      </div>
+      <div class="my-section">
+        <h3>오늘의 활동</h3>
+        <p id="limit-status"></p>
+        <button id="watch-ad-btn" class="btn">광고 보고 글쓰기 3회 충전 (목)</button>
+      </div>
+      <div class="my-section placeholder">
+        <h3>뱃지 · 포인트 · 공유 카드</h3>
+        <p class="hint">Phase 2에서 열려요</p>
+      </div>
+      <div class="my-section">
+        <button id="reset-btn" class="btn danger">프로토타입 데이터 초기화</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 글쓰기 시트 (유저 액션으로만 노출) -->
+  <div id="write-sheet" class="sheet" hidden>
+    <div class="sheet-head">
+      <strong><span id="write-gu-name"></span>에 태그 남기기</strong>
+    </div>
+    <p id="write-notice" class="hint"></p>
+    <textarea id="write-input" rows="2" placeholder="이 동네의 지금 분위기를 한 줄로"></textarea>
+    <div class="write-foot">
+      <span id="write-count" class="hint">0/50</span>
+      <div>
+        <button id="write-cancel" class="btn">취소</button>
+        <button id="write-submit" class="btn primary">남기기</button>
+      </div>
+    </div>
+  </div>
+
+  <nav id="tab-bar">
+    <button class="tab-btn active" data-screen="map">지도</button>
+    <button class="tab-btn" data-screen="ranking">랭킹</button>
+    <button class="tab-btn" data-screen="my">마이</button>
+  </nav>
+
+  <div id="toast" role="status"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

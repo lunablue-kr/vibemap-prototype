@@ -1,0 +1,83 @@
+// 주간 랭킹·구 레벨 (설계서 §8)
+// 출시 시점: 총점 + 급상승 2부문만 활성 (LAUNCH_CATEGORIES). 5부문 로직은 준비 완료.
+import { CONFIG } from './config.js';
+import { getState } from './store.js';
+import { weeklyReactionScore } from './reactions.js';
+
+// 이번 주 시작 (월요일 0시)
+export function weekStart() {
+  const d = new Date();
+  const day = (d.getDay() + 6) % 7; // 월=0
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - day);
+  return d.getTime();
+}
+
+// 구별 이번 주 집계: 점수(태그 1점 + 리액션 캡 적용 점수), 활성 기여자, 리액션 비율
+export function weeklyStats() {
+  const s = getState();
+  const ws = weekStart();
+  // 급상승 분모: 직전 4주 주평균. 신규 구(이력 0)는 전체 평균으로 대체 (설계서 §8 분모 0 방지)
+  const avgs = s.districts.map((d) => d.weeklyHistory.reduce((a, b) => a + b, 0) / d.weeklyHistory.length);
+  const positiveAvgs = avgs.filter((a) => a > 0);
+  const overallAvg = positiveAvgs.length ? positiveAvgs.reduce((a, b) => a + b, 0) / positiveAvgs.length : 0;
+  return s.districts.map((d) => {
+    const tags = s.tags.filter((t) => t.guId === d.guId && t.state === 'public');
+    const weekTags = tags.filter((t) => t.createdAt >= ws);
+    let score = weekTags.length; // 태그 작성 1점 (점수 모델 가정 — 확정 전)
+    const reactionTotals = { like: 0, funny: 0, cheer: 0, hug: 0, total: 0 };
+    const contributors = new Set(weekTags.map((t) => t.tossKey));
+
+    tags.forEach((t) => {
+      score += weeklyReactionScore(t.id, ws);
+      s.reactions.forEach((r) => {
+        if (r.tagId !== t.id || r.createdAt < ws) return;
+        reactionTotals[r.type]++;
+        reactionTotals.total++;
+        contributors.add(r.tossKey);
+      });
+    });
+
+    // 급상승 = 이번 주 점수 ÷ (직전 4주 주평균, 신규 구는 전체 평균 대체)
+    const pastAvg = d.weeklyHistory.reduce((a, b) => a + b, 0) / d.weeklyHistory.length;
+    const denom = pastAvg > 0 ? pastAvg : overallAvg;
+    const growth = denom > 0 ? score / denom : 0;
+
+    return {
+      guId: d.guId, name: d.name, level: d.level,
+      score, growth, reactionTotals,
+      activeContributors: contributors.size,
+      isEmber: contributors.size < CONFIG.MIN_WEEKLY_CONTRIBUTORS, // 불씨: 집계 제외
+    };
+  });
+}
+
+// 부문별 순위 (활성 부문만). 불씨 구는 집계 제외.
+export function categoryRanking(categoryId) {
+  const stats = weeklyStats().filter((d) => !d.isEmber);
+  const sorted = [...stats];
+  if (categoryId === 'top') sorted.sort((a, b) => b.score - a.score);
+  else if (categoryId === 'rising') sorted.sort((a, b) => b.growth - a.growth);
+  else {
+    // 비율 부문 (Phase 2 활성화 대기): 해당 리액션 비율 기준
+    sorted.sort((a, b) => ratio(b, categoryId) - ratio(a, categoryId));
+  }
+  return sorted;
+}
+
+function ratio(stat, type) {
+  return stat.reactionTotals.total > 0 ? stat.reactionTotals[type] / stat.reactionTotals.total : 0;
+}
+
+export function activeCategories() {
+  return CONFIG.ALL_CATEGORIES.filter((c) => CONFIG.LAUNCH_CATEGORIES.includes(c.id));
+}
+
+// 내 기여도 (이번 주)
+export function myWeeklyContribution(tossKey) {
+  const s = getState();
+  const ws = weekStart();
+  const myTags = s.tags.filter((t) => t.tossKey === tossKey && t.createdAt >= ws && t.state !== 'deleted');
+  const myReactions = s.reactions.filter((r) => r.tossKey === tossKey && r.createdAt >= ws);
+  return { tags: myTags.length, reactions: myReactions.length };
+}
