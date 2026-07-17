@@ -1,10 +1,10 @@
 // 앱 진입점 (v0.5 IA): 지도 전체화면 + 플로팅 칩·마이 + 시트/팝업/작성창 배선
 import { CONFIG } from './config.js';
-import { initStore, getState, getDistrict, resetAll } from './store.js';
+import { initStore, getState, getDistrict, resetAll, snapIntoDistrict } from './store.js';
 import { loadDictionary } from './moderation.js';
 import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize } from './map.js';
 import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
-import { toast, openSheet, closeSheets } from './ui.js';
+import { toast, openSheet, closeSheets, initSheetDrag } from './ui.js';
 import { initPopup, openPopup, closePopup, isPopupOpen } from './popup.js';
 import { initComposer, openComposer, closeComposer, isComposerOpen } from './composer.js';
 import { initChip, renderChip } from './chips.js';
@@ -35,7 +35,14 @@ async function main() {
       // 오버레이를 닫은 그 탭의 지연 콜백이면 소비하고 끝 (닫기만, 액션 없음)
       if (consumeSuppression()) return;
       if (isPopupOpen() || isComposerOpen()) { dismissOverlays(); return; }
-      openComposer(guId, lat, lng);
+      const [alat, alng] = snapIntoDistrict(guId, lat, lng); // 경계 근접 시 안쪽 보정
+      openComposer(guId, alat, alng);
+    },
+    // 롱프레스 = 명시적 작성 의도 → 오버레이 상태와 무관하게 즉시 작성창
+    onLongPress: (guId, lat, lng) => {
+      dismissOverlays(false);
+      const [alat, alng] = snapIntoDistrict(guId, lat, lng);
+      openComposer(guId, alat, alng);
     },
     // 지도 어디를 탭해도(폴리곤 밖 회색 포함) 즉시 닫기. 태그 탭은 예외
     onBareMapTap: (e) => {
@@ -72,7 +79,23 @@ async function main() {
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-close-sheet]')) closeSheets();
   });
+  // 랭킹 구 항목 탭 → 시트 닫고 그 구로 카메라 이동 (List-Details 관례, 코어 루프 4→1 연결)
+  document.getElementById('sheet-ranking').addEventListener('click', (e) => {
+    const row = e.target.closest('[data-gu]');
+    if (!row) return;
+    closeSheets();
+    panToDistrict(row.dataset.gu);
+  });
+  // 뒤로가기(안드로이드 백 제스처)로 열린 시트·카드 닫기
+  document.addEventListener('overlayopened', () => {
+    if (!history.state?.overlay) history.pushState({ overlay: 1 }, '');
+  });
+  window.addEventListener('popstate', () => {
+    dismissOverlays(false);
+    closeSheets();
+  });
 
+  initSheetDrag();
   initDevBar();
   invalidateMapSize();
 }

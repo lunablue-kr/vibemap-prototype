@@ -6,7 +6,7 @@ import { addReaction, myReaction, reactionCounts } from './reactions.js';
 import { reportTag, REPORT_REASONS } from './moderation.js';
 import { getTossKey } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
-import { toast, escapeHtml, viewportBox } from './ui.js';
+import { toast, escapeHtml, viewportBox, notifyOverlayOpened } from './ui.js';
 
 let currentTagId = null;
 let onChange = null; // 리액션·신고 후 (지도 단일 갱신 등)
@@ -29,6 +29,7 @@ export function openPopup(tagId) {
   const el = document.getElementById('tag-popup');
   el.hidden = false;
   positionNearTag(el, tagId);
+  notifyOverlayOpened();
 }
 
 // 카드를 탭한 라벨 옆에 배치 — 실제 보이는 영역(visualViewport) 안으로 클램프

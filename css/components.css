@@ -31,8 +31,28 @@
 }
 
 /* ── 지도 태그 (자리싸움 §9-3: 크기 3단계, 1줄 제한) ── */
-/* 래퍼는 클릭 통과(투명 히트박스가 빈 지도를 덮는 문제 방지), 보이는 말풍선만 탭 대상 */
-.tag-marker-wrap { background: none; border: none; pointer-events: none !important; }
+/* 래퍼는 클릭 통과(투명 히트박스가 빈 지도를 덮는 문제 방지), 핀·말풍선만 탭 대상 */
+.tag-marker-wrap {
+  background: none;
+  border: none;
+  pointer-events: none !important;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none; /* 롱프레스 시 시스템 콜아웃 방지 */
+}
+
+/* 지점 핀: 정확한 태그 좌표에 고정 (충돌로 박스가 밀려도 핀은 제자리) */
+.tag-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  text-shadow: 0 0 3px #fff;
+  z-index: 1;
+}
+.tag-pin.small { font-size: 11px; }
+.tag-pin.mid { font-size: 13px; }
+.tag-pin.big { font-size: 15px; }
 .tag-marker {
   display: inline-block;
   transform: translate(-50%, -50%);

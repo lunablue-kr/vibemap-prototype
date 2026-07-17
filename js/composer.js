@@ -6,7 +6,7 @@ import { getDistrict } from './store.js';
 import { createTag, canWriteIn } from './tags.js';
 import { canPost } from './limits.js';
 import { latLngToPagePoint } from './map.js';
-import { toast, viewportBox } from './ui.js';
+import { toast, viewportBox, notifyOverlayOpened } from './ui.js';
 
 let pending = null; // { guId, lat, lng }
 let onCreated = null;
@@ -55,6 +55,7 @@ export function openComposer(guId, lat, lng) {
   positionBalloon(el, latLngToPagePoint(lat, lng));
   el.hidden = false;
   document.getElementById('composer-input')?.focus();
+  notifyOverlayOpened();
 }
 
 function positionBalloon(el, pt) {

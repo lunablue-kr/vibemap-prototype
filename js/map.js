@@ -80,6 +80,11 @@ export function renderDistricts() {
         }, 280);
       });
       layer.on('dblclick', () => clearTimeout(clickTimer));
+      // 롱프레스 = 이 지점에 태그 (지도 앱 관례. Leaflet이 모바일 롱프레스를 contextmenu로 매핑)
+      layer.on('contextmenu', (e) => {
+        clearTimeout(clickTimer);
+        handlers.onLongPress?.(f.properties.code, e.latlng.lat, e.latlng.lng);
+      });
     },
   }).addTo(map);
 }
@@ -106,16 +111,20 @@ export function renderGuLabels() {
   });
 }
 
-// 태그 라벨 HTML: [최다 리액션 아이콘 + 총합] + 텍스트 1줄 (크기별 글자수 제한)
-// offsetY: 충돌 회피용 픽셀 오프셋 — 마커 좌표는 건드리지 않고 라벨만 시각적으로 밀어냄
-function tagHtml(t, displayTier, offsetY = 0) {
+// 태그 = 지점 핀(🏠/🚩, 정확한 좌표에 고정) + 오른쪽 박스([최다 리액션 + 총합] 텍스트 1줄)
+// offsetY: 충돌 회피 시 박스만 밀리고 핀은 지점에 남음 (어느 지점의 태그인지 항상 명확)
+const PIN_GAP = 9; // 핀 중심 → 박스 간격(px)
+// flip: 서울 동쪽 경계 근처면 박스를 핀 왼쪽에 (화면 밖 잘림 방지)
+function tagHtml(t, displayTier, offsetY = 0, flip = false) {
   const tier = displayTier || t.tier;
   const chars = CONFIG.LABEL_CHARS[tier];
   const text = t.text.length > chars ? t.text.slice(0, chars) + '…' : t.text;
-  const marker = t.isResident ? '🏠' : '🚩';
-  const count = t.counts.total > 0 ? `${t.topType.emoji} ${t.counts.total} ` : `${marker} `;
-  const style = `transform: translate(-50%, calc(-50% + ${offsetY}px));`;
-  return `<span class="tag-marker ${tier}" data-tag="${t.id}" style="${style}">${count}${escapeHtml(text)}</span>`;
+  const pin = t.isResident ? '🏠' : '🚩';
+  const count = t.counts.total > 0 ? `${t.topType.emoji} ${t.counts.total} ` : '';
+  const x = flip ? `calc(-100% - ${PIN_GAP}px)` : `${PIN_GAP}px`;
+  const style = `transform: translate(${x}, calc(-50% + ${offsetY}px));`;
+  return `<span class="tag-pin ${tier}" data-tag="${t.id}">${pin}</span>` +
+    `<span class="tag-marker ${tier}" data-tag="${t.id}" style="${style}">${count}${escapeHtml(text)}</span>`;
 }
 
 // 줌별 구당 표시 상한 (§9-3): 전체 뷰 = 1개, 줌인할수록 상위 10개까지 점진 확대
@@ -156,6 +165,7 @@ export function renderTags() {
   const placedBoxes = []; // 절대 투영 좌표(화면 중심 무관) 기준 충돌 회피 — 팬 중에도 배치 유지
   const zoom = map.getZoom();
   const blockedGu = new Set(); // k위가 생략된 구 — 하위 순위도 생략 (prefix 보장)
+  const eastX = map.project(geoLayer.getBounds().getNorthEast(), zoom).x; // 서울 동쪽 경계 (박스 뒤집기 기준)
   shown.forEach((t) => {
     if (blockedGu.has(t.guId)) return;
     const d = s.districts.find((x) => x.guId === t.guId);
@@ -173,9 +183,11 @@ export function renderTags() {
     for (const tier of tiersToTry) {
       const box = labelBox(t, tier);
       const h = box.h * 0.9;
+      const flip = pp.x + 9 + box.w > eastX + 10; // 동쪽 경계 밖으로 나가면 왼쪽으로
+      const bx = pp.x + (flip ? -(9 + box.w / 2) : 9 + box.w / 2);
       const usable = (dy) => {
         const hit = placedBoxes.some(
-          (p) => Math.abs(p.x - pp.x) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
+          (p) => Math.abs(p.x - bx) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
         );
         if (hit) return false;
         if (dy !== 0 && d) {
@@ -185,7 +197,7 @@ export function renderTags() {
         return true;
       };
       const dy = [0, h, -h].find(usable);
-      if (dy !== undefined) { placement = { tier, box, dy }; break; }
+      if (dy !== undefined) { placement = { tier, box, dy, bx, flip }; break; }
     }
     if (!placement) {
       blockedGu.add(t.guId); // 이 구는 여기서 끊음 — 하위 순위가 먼저 튀어나오는 것 방지
@@ -193,15 +205,15 @@ export function renderTags() {
     }
     const displayTier = placement.tier;
     const offsetY = placement.dy;
-    placedBoxes.push({ x: pp.x, y: pp.y + offsetY, w: placement.box.w, h: placement.box.h });
+    placedBoxes.push({ x: placement.bx, y: pp.y + offsetY, w: placement.box.w, h: placement.box.h });
 
     const marker = L.marker(anchor, {
-      icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY), className: 'tag-marker-wrap', iconSize: null }),
+      icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY, placement.flip), className: 'tag-marker-wrap', iconSize: null }),
       zIndexOffset: t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
     });
     marker.on('click', () => handlers.onTagClick?.(t.id));
     tagLayerGroup.addLayer(marker);
-    markersByTagId[t.id] = { marker, tag: t, offsetY };
+    markersByTagId[t.id] = { marker, tag: t, offsetY, flip: placement.flip };
   });
 }
 
@@ -226,7 +238,7 @@ export function updateSingleTag(tagId) {
   const t = { ...entry.tag, counts, topType, tier };
   const displayTier = map.getZoom() < CONFIG.LABEL_FULLSIZE_ZOOM ? 'small' : tier;
   entry.marker.setIcon(
-    L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0), className: 'tag-marker-wrap', iconSize: null })
+    L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0, entry.flip), className: 'tag-marker-wrap', iconSize: null })
   );
 }
 

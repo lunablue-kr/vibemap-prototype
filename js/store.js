@@ -97,6 +97,36 @@ export function getDistrict(guId) {
   return state.districts.find((d) => d.guId === guId);
 }
 
+// 터치 지점이 구 경계에 너무 가까우면(핀 소속이 모호해 보임) 무게중심 쪽으로 당겨 보정
+const BOUNDARY_MARGIN = 0.0008; // 위도 기준 약 80m
+export function snapIntoDistrict(guId, lat, lng) {
+  const d = state.districts.find((x) => x.guId === guId);
+  if (!d) return [lat, lng];
+  const ring = (d.geometry.type === 'Polygon' ? d.geometry.coordinates : d.geometry.coordinates.flat())[0];
+  let p = [lat, lng];
+  for (let i = 0; i < 10; i++) {
+    if (distToRing(p[0], p[1], ring) >= BOUNDARY_MARGIN) break;
+    p = [p[0] + (d.centroid[0] - p[0]) * 0.25, p[1] + (d.centroid[1] - p[1]) * 0.25];
+  }
+  return p;
+}
+
+// 점→경계 근사 거리 (도 단위, 경도축 0.8 스케일)
+function distToRing(lat, lng, ring) {
+  let best = Infinity;
+  for (let i = 0; i < ring.length - 1; i++) {
+    const [x1, y1] = ring[i];
+    const [x2, y2] = ring[i + 1];
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const t = dx === 0 && dy === 0 ? 0 : Math.max(0, Math.min(1, ((lng - x1) * dx + (lat - y1) * dy) / (dx * dx + dy * dy)));
+    const nx = x1 + t * dx;
+    const ny = y1 + t * dy;
+    best = Math.min(best, Math.hypot((lng - nx) * 0.8, lat - ny));
+  }
+  return best;
+}
+
 // 폴리곤 면적 무게중심 (신발끈 공식) — 꼭짓점 평균보다 오목한 구에서도 정중앙에 가까움
 function ringCentroid(geometry) {
   const rings = geometry.type === 'Polygon'

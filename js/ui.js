@@ -15,6 +15,39 @@ export function openSheet(name) {
     document.getElementById('sheet-' + s).classList.toggle('open', s === name);
   });
   document.getElementById('sheet-dim').hidden = false;
+  notifyOverlayOpened();
+}
+
+// 뒤로가기로 닫기 위해 오버레이 열림을 알림 (히스토리 처리는 app.js)
+export function notifyOverlayOpened() {
+  document.dispatchEvent(new CustomEvent('overlayopened'));
+}
+
+// 시트 스와이프 다운 닫기 (그랩바·타이틀 영역에서 아래로 90px 이상 끌면 닫힘)
+export function initSheetDrag() {
+  SHEETS.forEach((s) => {
+    const el = document.getElementById('sheet-' + s);
+    let startY = null;
+    let dragging = false;
+    el.addEventListener('touchstart', (e) => {
+      if (!e.target.closest('.sheet-grab, .sheet-title-row, .district-head')) return;
+      startY = e.touches[0].clientY;
+      dragging = true;
+      el.style.transition = 'none';
+    }, { passive: true });
+    el.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
+      const dy = Math.max(0, e.touches[0].clientY - startY);
+      el.style.transform = `translate(-50%, ${dy}px)`;
+    }, { passive: true });
+    el.addEventListener('touchend', (e) => {
+      if (!dragging) return;
+      dragging = false;
+      el.style.transition = '';
+      el.style.transform = '';
+      if (e.changedTouches[0].clientY - startY > 90) closeSheets();
+    });
+  });
 }
 
 export function closeSheets() {
