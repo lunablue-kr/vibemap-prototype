@@ -23,14 +23,6 @@ export function isPopupOpen() {
   return !document.getElementById('tag-popup').hidden;
 }
 
-// 팬·줌 시 카드가 태그 라벨을 따라다님. 라벨이 사라지면(줌아웃 생략) 닫음
-export function repositionPopup() {
-  const el = document.getElementById('tag-popup');
-  if (el.hidden || !currentTagId) return;
-  if (!tagScreenPoint(currentTagId)) { closePopup(); return; }
-  positionNearTag(el, currentTagId);
-}
-
 export function openPopup(tagId) {
   currentTagId = tagId;
   render();

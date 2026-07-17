@@ -67,13 +67,6 @@ export function isComposerOpen() {
   return !document.getElementById('composer').hidden;
 }
 
-// 팬·줌 시 작성창이 터치 지점을 따라다님 (입력 중 텍스트 유지)
-export function repositionComposer() {
-  const el = document.getElementById('composer');
-  if (el.hidden || !pending) return;
-  positionBalloon(el, latLngToPagePoint(pending.lat, pending.lng));
-}
-
 export function closeComposer() {
   document.getElementById('composer').hidden = true;
   pending = null;

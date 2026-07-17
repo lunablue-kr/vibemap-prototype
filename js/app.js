@@ -5,8 +5,8 @@ import { loadDictionary } from './moderation.js';
 import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize } from './map.js';
 import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
 import { toast, openSheet, closeSheets } from './ui.js';
-import { initPopup, openPopup, closePopup, isPopupOpen, repositionPopup } from './popup.js';
-import { initComposer, openComposer, closeComposer, isComposerOpen, repositionComposer } from './composer.js';
+import { initPopup, openPopup, closePopup, isPopupOpen } from './popup.js';
+import { initComposer, openComposer, closeComposer, isComposerOpen } from './composer.js';
 import { initChip, renderChip } from './chips.js';
 import { initDistrictSheet, openDistrict, refreshDistrict } from './screens/district.js';
 import { renderRankingSheet } from './screens/ranking.js';
@@ -41,10 +41,10 @@ async function main() {
     onBareMapTap: (e) => {
       const target = e.originalEvent?.target;
       if (target?.closest?.('.tag-marker')) return;
-      dismissOverlays();
+      dismissOverlays(true); // 탭에 의한 닫기 → 같은 탭의 지연 콜백 억제
     },
-    // 팬·줌 시 카드·작성창이 좌표를 따라다님 (A안)
-    onViewChange: () => { repositionPopup(); repositionComposer(); },
+    // 지도 조작(팬·줌) 시작 = 자연스럽게 닫힘 (B안). 억제 불필요 — 탭이 아니므로
+    onMapMoveStart: () => dismissOverlays(false),
   });
 
   initPopup({
@@ -82,14 +82,15 @@ function goDistrict(guId) {
 }
 
 // 오버레이(팝업·작성창) 일괄 닫기.
-// 닫은 그 탭의 폴리곤 지연 콜백(작성창 열기)이 실행되지 않도록 1회용 억제 플래그를 세움.
+// suppress=true(탭에 의한 닫기)면 그 탭의 폴리곤 지연 콜백(작성창 열기)이 실행되지 않도록
+// 1회용 억제 플래그를 세움. 팬·줌에 의한 닫기는 억제 불필요 (다음 탭을 삼키면 안 됨).
 // 플래그는 다음 콜백이 소비하거나 1.5초 후 만료 (더블탭 줌으로 콜백이 취소되는 경우 대비)
 let suppressUntil = 0;
-function dismissOverlays() {
+function dismissOverlays(suppress) {
   if (isPopupOpen() || isComposerOpen()) {
     closePopup();
     closeComposer();
-    suppressUntil = Date.now() + 1500;
+    if (suppress) suppressUntil = Date.now() + 1500;
   }
 }
 function consumeSuppression() {

@@ -49,8 +49,9 @@ export function initMap(h) {
     renderGuLabels();
     renderTags();
   });
-  map.on('zoomend', () => { renderGuLabels(); renderTags(); handlers.onViewChange?.(); }); // 전체 재배치는 진입·줌 변경 시에만 (§9-3)
-  map.on('move', () => handlers.onViewChange?.()); // 팬 중 팝업·작성창이 좌표를 따라다니게
+  map.on('zoomend', () => { renderGuLabels(); renderTags(); }); // 전체 재배치는 진입·줌 변경 시에만 (§9-3)
+  // 지도 조작(팬·줌) 시작 = 오버레이 자연스럽게 닫힘 (B안)
+  map.on('movestart zoomstart', () => handlers.onMapMoveStart?.());
   map.on('click', (e) => handlers.onBareMapTap?.(e)); // 오버레이 닫기 규칙용 (폴리곤·마커 탭에서도 발생)
   window.__vibemapMap = map; // 프로토타입 디버그용 (출시 전 제거)
 }
