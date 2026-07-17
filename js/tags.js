@@ -58,20 +58,38 @@ export function visibleTags(guId) {
   return s.tags.filter((t) => t.state === 'public' && (!guId || t.guId === guId));
 }
 
-// 승격: 리액션 4종 합산이 임계값 이상이면 지도에 크게 표시 (설계서 §7, §8)
-export function isPromoted(tag) {
-  const c = reactionCounts(tag.id);
-  return c.total >= CONFIG.PROMOTE_THRESHOLD;
+// 자리싸움 크기 단계 (설계서 §9-3): 합산 3 이상 = 중간, 구 내 상위 10 = 큰 크기
+// guRank는 구 내 리액션 합산 순위 (0부터)
+export function sizeTier(total, guRank) {
+  if (total >= CONFIG.PROMOTE_MID_THRESHOLD && guRank < CONFIG.BIG_TOP_N) return 'big';
+  if (total >= CONFIG.PROMOTE_MID_THRESHOLD) return 'mid';
+  return 'small';
 }
 
-// 지도에 표시할 태그: 승격(리액션 합산 임계값 이상) 여부 포함
+// 지도 표시용: 구별 리액션 합산 순위·크기 단계·최다 리액션 종류 포함
 export function tagsForMap() {
-  return visibleTags().map((t) => ({ ...t, promoted: isPromoted(t), counts: reactionCounts(t.id) }));
+  const byGu = {};
+  visibleTags().forEach((t) => {
+    const counts = reactionCounts(t.id);
+    const topType = CONFIG.REACTION_TYPES.reduce(
+      (best, rt) => (counts[rt.id] > counts[best.id] ? rt : best),
+      CONFIG.REACTION_TYPES[0]
+    );
+    (byGu[t.guId] = byGu[t.guId] || []).push({ ...t, counts, topType });
+  });
+  Object.values(byGu).forEach((list) => {
+    list.sort((a, b) => b.counts.total - a.counts.total || b.createdAt - a.createdAt);
+    list.forEach((t, rank) => {
+      t.guRank = rank;
+      t.tier = sizeTier(t.counts.total, rank);
+    });
+  });
+  return byGu; // { guId: [순위순 태그] }
 }
 
-// 구 상세 피드 정렬
+// 구 상세 피드 정렬 (리액션순/최신순)
 export function districtFeed(guId, sort) {
-  const list = visibleTags(guId).map((t) => ({ ...t, counts: reactionCounts(t.id), promoted: isPromoted(t) }));
+  const list = visibleTags(guId).map((t) => ({ ...t, counts: reactionCounts(t.id) }));
   if (sort === 'popular') list.sort((a, b) => b.counts.total - a.counts.total);
   else list.sort((a, b) => b.createdAt - a.createdAt);
   return list;

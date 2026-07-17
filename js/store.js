@@ -1,15 +1,15 @@
 // 상태 저장소 — localStorage 목 백엔드.
 // 실제 앱에서는 Supabase로 교체 (테이블 구조는 설계서 §10 "데이터 테이블" 기준).
 
-const LS_KEY = 'vibemap.state.v1';
+const LS_KEY = 'vibemap.state.v2'; // v2: 리액션 개편(hip)·홈 변경 이력 — v1 상태와 비호환
 
 const state = {
-  districts: [], // { guId, name, level, totalScore, weeklyHistory: [지난주×4 점수] }
+  districts: [], // { guId, name, level, totalScore, weeklyHistory, centroid: [lat,lng] }
   tags: [],      // { id, tossKey, guId, lat, lng, text, isResident, state, createdAt }
   reactions: [], // { tossKey, tagId, type, isOnsite, createdAt }
   reports: [],   // { tagId, tossKey, reason, createdAt }
   dailyLimits: {}, // { 'YYYY-MM-DD': { postsUsed, reactionsUsed, adBonus } }
-  user: { homeGuId: null },
+  user: { homeGuId: null, homeChangedAt: null }, // homeChangedAt: 쿨다운 판정 (설계서 §5)
   moderationQueue: [], // 부정어 감지 → 노출 보류 태그 id
 };
 
@@ -25,6 +25,7 @@ export function save() {
 
 export function resetAll() {
   localStorage.removeItem(LS_KEY);
+  localStorage.removeItem('vibemap.state.v1'); // 구버전 잔재 정리
   localStorage.removeItem('vibemap.mock.location');
   location.reload();
 }
@@ -45,6 +46,7 @@ export async function initStore() {
       level: s.level || 1,
       totalScore: s.totalScore || 0,
       weeklyHistory: s.weeklyHistory || [0, 0, 0, 0], // 직전 4주 점수 (급상승 분모)
+      centroid: ringCentroid(f.geometry), // 고정석(주간 1위 구 중심 고정) 앵커용
     };
   });
 
@@ -78,7 +80,7 @@ export async function initStore() {
     state.reactions = state.reactions.concat(p.reactions.filter((r) => !r.tossKey.startsWith('seed-')));
     state.reports = p.reports || [];
     state.dailyLimits = p.dailyLimits || {};
-    state.user = p.user || { homeGuId: null };
+    state.user = p.user || { homeGuId: null, homeChangedAt: null };
     state.moderationQueue = p.moderationQueue || [];
     (p.districtLevels || []).forEach((dl) => {
       const d = state.districts.find((x) => x.guId === dl.guId);
@@ -92,6 +94,17 @@ export async function initStore() {
 
 export function getDistrict(guId) {
   return state.districts.find((d) => d.guId === guId);
+}
+
+// 폴리곤 외곽 꼭짓점 평균 (프로토타입용 근사 중심)
+function ringCentroid(geometry) {
+  const rings = geometry.type === 'Polygon'
+    ? geometry.coordinates
+    : geometry.coordinates.flat();
+  const pts = rings[0];
+  const lng = pts.reduce((a, p) => a + p[0], 0) / pts.length;
+  const lat = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+  return [lat, lng];
 }
 
 export function applyReportState(tagId) {

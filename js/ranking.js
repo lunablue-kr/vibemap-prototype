@@ -24,8 +24,9 @@ export function weeklyStats() {
   return s.districts.map((d) => {
     const tags = s.tags.filter((t) => t.guId === d.guId && t.state === 'public');
     const weekTags = tags.filter((t) => t.createdAt >= ws);
-    let score = weekTags.length; // 태그 작성 1점 (점수 모델 가정 — 확정 전)
-    const reactionTotals = { like: 0, funny: 0, cheer: 0, hug: 0, total: 0 };
+    let score = weekTags.length * CONFIG.SCORE_PER_TAG; // 태그 등록 +3 (설계서 §8 확정)
+    const reactionTotals = { total: 0 };
+    CONFIG.REACTION_TYPES.forEach((rt) => { reactionTotals[rt.id] = 0; });
     const contributors = new Set(weekTags.map((t) => t.tossKey));
 
     tags.forEach((t) => {
@@ -71,6 +72,37 @@ function ratio(stat, type) {
 
 export function activeCategories() {
   return CONFIG.ALL_CATEGORIES.filter((c) => CONFIG.LAUNCH_CATEGORIES.includes(c.id));
+}
+
+// 랭킹 롤링 칩 데이터 (설계서 §9-0): 활성 부문별 1위 구. Phase 1 = 👑·🔥 2종
+export function rollingChips() {
+  return activeCategories().map((cat) => {
+    const first = categoryRanking(cat.id)[0];
+    return {
+      categoryId: cat.id,
+      icon: cat.label.split(' ')[0],
+      guName: first ? first.name : '—',
+    };
+  });
+}
+
+// 구별 주간 1위 태그 id (자리싸움 고정석: 구 중심 고정 — §9-3)
+export function weeklyTopTagIdByGu() {
+  const s = getState();
+  const ws = weekStart();
+  const result = {};
+  s.districts.forEach((d) => {
+    let best = null;
+    let bestScore = -1;
+    s.tags.forEach((t) => {
+      if (t.guId !== d.guId || t.state !== 'public') return;
+      // 실제 점수 기준과 동일하게 현장 2배·주간 캡 반영
+      const score = weeklyReactionScore(t.id, ws);
+      if (score > bestScore) { best = t.id; bestScore = score; }
+    });
+    if (best && bestScore > 0) result[d.guId] = best;
+  });
+  return result;
 }
 
 // 내 기여도 (이번 주)

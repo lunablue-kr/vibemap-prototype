@@ -55,5 +55,8 @@ export function weeklyReactionScore(tagId, weekStart) {
   const inWeek = s.reactions
     .filter((r) => r.tagId === tagId && r.createdAt >= weekStart)
     .slice(0, CONFIG.WEEKLY_REACTION_SCORE_CAP);
-  return inWeek.reduce((sum, r) => sum + (r.isOnsite ? CONFIG.ONSITE_MULTIPLIER : 1), 0);
+  return inWeek.reduce(
+    (sum, r) => sum + CONFIG.SCORE_PER_REACTION * (r.isOnsite ? CONFIG.ONSITE_MULTIPLIER : 1),
+    0
+  );
 }

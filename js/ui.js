@@ -1,4 +1,4 @@
-// 공용 UI 유틸: 토스트, 화면 전환
+// 공용 UI 유틸: 토스트, 시트 열기/닫기 (v0.5 IA: 하단 탭 없음, 지도 위 시트 구조)
 export function toast(message) {
   const el = document.getElementById('toast');
   el.textContent = message;
@@ -7,22 +7,19 @@ export function toast(message) {
   el._timer = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-const SCREENS = ['map', 'district', 'ranking', 'my'];
+const SHEETS = ['district', 'ranking', 'my'];
 
-export function showScreen(name) {
-  SCREENS.forEach((s) => {
-    document.getElementById('screen-' + s).classList.toggle('active', s === name);
+// 시트는 유저 액션으로만 열림 (진입 즉시 자동 오픈 금지 — 앱인토스 검수)
+export function openSheet(name) {
+  SHEETS.forEach((s) => {
+    document.getElementById('sheet-' + s).classList.toggle('open', s === name);
   });
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.screen === name);
-  });
-  document.dispatchEvent(new CustomEvent('screenchange', { detail: name }));
+  document.getElementById('sheet-dim').hidden = false;
 }
 
-export function el(html) {
-  const tpl = document.createElement('template');
-  tpl.innerHTML = html.trim();
-  return tpl.content.firstElementChild;
+export function closeSheets() {
+  SHEETS.forEach((s) => document.getElementById('sheet-' + s).classList.remove('open'));
+  document.getElementById('sheet-dim').hidden = true;
 }
 
 export function escapeHtml(str) {

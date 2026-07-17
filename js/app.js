@@ -1,16 +1,16 @@
-// 앱 진입점: 탭 내비게이션, 지도 터치 → 글쓰기 플로우, 개발용 위치 시뮬레이션
+// 앱 진입점 (v0.5 IA): 지도 전체화면 + 플로팅 칩·마이 + 시트/팝업/작성창 배선
 import { CONFIG } from './config.js';
-import { initStore, getState, getDistrict } from './store.js';
-import { initMap, refreshMap, invalidateMapSize, panToDistrict } from './map.js';
-import { createTag, canWriteIn } from './tags.js';
-import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
+import { initStore, getState, getDistrict, resetAll } from './store.js';
 import { loadDictionary } from './moderation.js';
-import { toast, showScreen } from './ui.js';
-import { initDistrictScreen, openDistrict, refreshDistrict } from './screens/district.js';
-import { renderRankingScreen } from './screens/ranking.js';
-import { initMyScreen, renderMyScreen } from './screens/my.js';
-
-let pendingWrite = null; // { guId, lat, lng }
+import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize } from './map.js';
+import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
+import { toast, openSheet, closeSheets } from './ui.js';
+import { initPopup, openPopup, closePopup } from './popup.js';
+import { initComposer, openComposer, closeComposer } from './composer.js';
+import { initChip, renderChip } from './chips.js';
+import { initDistrictSheet, openDistrict, refreshDistrict } from './screens/district.js';
+import { renderRankingSheet } from './screens/ranking.js';
+import { initMySheet, renderMySheet } from './screens/my.js';
 
 async function main() {
   try {
@@ -20,124 +20,50 @@ async function main() {
     toast('데이터를 불러오지 못했어요. 새로고침으로 다시 시도해주세요.');
     return;
   }
-  document.getElementById('app-title').textContent = CONFIG.APP_NAME;
 
-  showScreen('map'); // 지도 컨테이너가 보이는 상태에서 Leaflet 초기화 (크기 0 방지)
   initMap({
-    onDistrictClick: goDistrict,
-    onMapTap: onMapTap,
+    onTagClick: (tagId) => { closeComposer(); openPopup(tagId); },
+    onEmptyTap: (guId, lat, lng) => { closePopup(); openComposer(guId, lat, lng); },
   });
-  initDistrictScreen({
-    onWriteRequest: onWriteFromDistrict,
-    onDataChange: refreshAll,
-    onBack: () => { showScreen('map'); invalidateMapSize(); },
+
+  initPopup({
+    onChange: (tagId) => { updateSingleTag(tagId); refreshDistrict(); renderChip(); },
+    onOpenDistrict: goDistrict,
   });
-  initMyScreen({ onDataChange: refreshAll });
+  initComposer({
+    onCreated: () => { renderTags(); refreshDistrict(); renderChip(); renderMySheet(); },
+    onOpenDistrict: goDistrict,
+  });
+  initChip(() => { closePopup(); closeComposer(); renderRankingSheet(); openSheet('ranking'); });
+  initDistrictSheet({ onDataChange: (tagId) => { updateSingleTag(tagId); renderChip(); } });
+  initMySheet({ onDataChange: () => { refreshMap(); renderMySheet(); } });
+
+  document.getElementById('my-icon').addEventListener('click', () => {
+    closePopup();
+    closeComposer();
+    renderMySheet();
+    openSheet('my');
+  });
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('프로토타입 데이터를 초기화할까요?')) resetAll();
+  });
+  document.getElementById('sheet-dim').addEventListener('click', closeSheets);
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-close-sheet]')) closeSheets();
+  });
+
   initDevBar();
-  initTabs();
-  initActionPanel();
-  initWriteSheet();
-}
-
-function refreshAll() {
-  refreshMap();
-  renderRankingScreen();
-  refreshDistrict();
-}
-
-function initTabs() {
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      showScreen(btn.dataset.screen);
-      if (btn.dataset.screen === 'map') invalidateMapSize();
-      if (btn.dataset.screen === 'ranking') renderRankingScreen();
-      if (btn.dataset.screen === 'my') renderMyScreen();
-    });
-  });
+  invalidateMapSize();
 }
 
 function goDistrict(guId) {
   openDistrict(guId);
-  showScreen('district');
-}
-
-// 지도 터치 → 하단 액션 패널 (유저 액션으로만 노출 — 진입 즉시 바텀시트 금지 준수)
-function onMapTap(guId, lat, lng) {
-  pendingWrite = { guId, lat, lng };
-  const d = getDistrict(guId);
-  document.getElementById('action-gu-name').textContent = d.name;
-  document.getElementById('action-panel').hidden = false;
-}
-
-function initActionPanel() {
-  document.getElementById('action-write').addEventListener('click', () => {
-    document.getElementById('action-panel').hidden = true;
-    tryOpenWriteSheet(pendingWrite.guId, pendingWrite.lat, pendingWrite.lng);
-  });
-  document.getElementById('action-detail').addEventListener('click', () => {
-    document.getElementById('action-panel').hidden = true;
-    goDistrict(pendingWrite.guId);
-  });
-  document.getElementById('action-close').addEventListener('click', () => {
-    document.getElementById('action-panel').hidden = true;
-  });
-}
-
-// 구 상세에서 글쓰기: 구 중심 근처 좌표 없음 → 지도에서 좌표를 고르게 안내하는 대신
-// 프로토타입에선 해당 구 내 태그 평균 좌표 근처 랜덤 오프셋 사용
-function onWriteFromDistrict(guId) {
-  const s = getState();
-  const guTags = s.tags.filter((t) => t.guId === guId);
-  const base = guTags.length
-    ? { lat: guTags[0].lat, lng: guTags[0].lng }
-    : { lat: 37.5665, lng: 126.978 };
-  tryOpenWriteSheet(guId, base.lat + (Math.random() - 0.5) * 0.01, base.lng + (Math.random() - 0.5) * 0.01);
-}
-
-function tryOpenWriteSheet(guId, lat, lng) {
-  const eligible = canWriteIn(guId);
-  if (!eligible.ok) { toast(eligible.message); return; }
-  pendingWrite = { guId, lat, lng };
-  const d = getDistrict(guId);
-  document.getElementById('write-gu-name').textContent = d.name;
-  // 원정 태그 고지 (설계서 §5) + 부정 후기 고지 (설계서 §7)
-  document.getElementById('write-notice').textContent = eligible.isResident
-    ? '특정 가게에 대한 부정적 후기는 삭제될 수 있어요'
-    : '지금 계신 동네에 대한 이야기를 남겨주세요 · 특정 가게에 대한 부정적 후기는 삭제될 수 있어요';
-  const input = document.getElementById('write-input');
-  input.value = '';
-  updateCharCount();
-  document.getElementById('write-sheet').hidden = false;
-  input.focus();
-}
-
-function updateCharCount() {
-  const input = document.getElementById('write-input');
-  document.getElementById('write-count').textContent = `${input.value.length}/${CONFIG.TAG_MAX_LENGTH}`;
-}
-
-function initWriteSheet() {
-  const input = document.getElementById('write-input');
-  input.maxLength = CONFIG.TAG_MAX_LENGTH;
-  input.addEventListener('input', updateCharCount);
-  document.getElementById('write-cancel').addEventListener('click', () => {
-    document.getElementById('write-sheet').hidden = true;
-  });
-  document.getElementById('write-submit').addEventListener('click', () => {
-    const r = createTag(pendingWrite.guId, pendingWrite.lat, pendingWrite.lng, input.value);
-    toast(r.message);
-    if (r.ok) {
-      document.getElementById('write-sheet').hidden = true;
-      refreshAll();
-    }
-  });
 }
 
 // 개발용 위치 시뮬레이션 바 — 실제 앱에서는 위치 SDK로 대체
 function initDevBar() {
   const select = document.getElementById('dev-location');
-  const s = getState();
-  s.districts
+  getState().districts
     .slice()
     .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
     .forEach((d) => select.add(new Option(d.name, d.guId)));
