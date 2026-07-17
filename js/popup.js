@@ -15,12 +15,20 @@ let onOpenDistrict = null;
 export function initPopup(handlers) {
   onChange = handlers.onChange;
   onOpenDistrict = handlers.onOpenDistrict;
+  document.getElementById('tag-popup').addEventListener('click', handleClick);
+  // 지도 탭에 의한 닫힘은 app.js의 오버레이 규칙(닫기만, 액션 없음)에서 일괄 처리
+}
+
+export function isPopupOpen() {
+  return !document.getElementById('tag-popup').hidden;
+}
+
+// 팬·줌 시 카드가 태그 라벨을 따라다님. 라벨이 사라지면(줌아웃 생략) 닫음
+export function repositionPopup() {
   const el = document.getElementById('tag-popup');
-  el.addEventListener('click', handleClick);
-  document.getElementById('map').addEventListener('click', (e) => {
-    // 지도 빈 곳 터치 시 팝업 닫힘 (Leaflet 클릭과 별개로 캡처)
-    if (!el.hidden && !el.contains(e.target)) closePopup();
-  }, true);
+  if (el.hidden || !currentTagId) return;
+  if (!tagScreenPoint(currentTagId)) { closePopup(); return; }
+  positionNearTag(el, currentTagId);
 }
 
 export function openPopup(tagId) {

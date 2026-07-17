@@ -52,12 +52,26 @@ export function openComposer(guId, lat, lng) {
     </div>
     ${body}`;
 
-  const pt = latLngToPagePoint(lat, lng);
+  positionBalloon(el, latLngToPagePoint(lat, lng));
+  el.hidden = false;
+  document.getElementById('composer-input')?.focus();
+}
+
+function positionBalloon(el, pt) {
   const v = viewportBox();
   el.style.left = Math.min(Math.max(pt.x - 130, v.x + 8), v.x + v.w - 268) + 'px';
   el.style.top = Math.min(Math.max(pt.y - 20, v.y + 60), v.y + v.h - 180) + 'px';
-  el.hidden = false;
-  document.getElementById('composer-input')?.focus();
+}
+
+export function isComposerOpen() {
+  return !document.getElementById('composer').hidden;
+}
+
+// 팬·줌 시 작성창이 터치 지점을 따라다님 (입력 중 텍스트 유지)
+export function repositionComposer() {
+  const el = document.getElementById('composer');
+  if (el.hidden || !pending) return;
+  positionBalloon(el, latLngToPagePoint(pending.lat, pending.lng));
 }
 
 export function closeComposer() {

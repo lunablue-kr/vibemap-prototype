@@ -5,8 +5,8 @@ import { loadDictionary } from './moderation.js';
 import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize } from './map.js';
 import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
 import { toast, openSheet, closeSheets } from './ui.js';
-import { initPopup, openPopup, closePopup } from './popup.js';
-import { initComposer, openComposer, closeComposer } from './composer.js';
+import { initPopup, openPopup, closePopup, isPopupOpen, repositionPopup } from './popup.js';
+import { initComposer, openComposer, closeComposer, isComposerOpen, repositionComposer } from './composer.js';
 import { initChip, renderChip } from './chips.js';
 import { initDistrictSheet, openDistrict, refreshDistrict } from './screens/district.js';
 import { renderRankingSheet } from './screens/ranking.js';
@@ -28,8 +28,23 @@ async function main() {
   }
 
   initMap({
+    // 태그 탭은 오버레이 열림 여부와 무관하게 동작 (팝업 전환 — 연속 탐색)
     onTagClick: (tagId) => { closeComposer(); openPopup(tagId); },
-    onEmptyTap: (guId, lat, lng) => { closePopup(); openComposer(guId, lat, lng); },
+    // 빈 곳 탭: 오버레이(팝업·작성창)가 떠 있으면 "닫기만" — 밑의 액션 실행 안 함
+    onEmptyTap: (guId, lat, lng) => {
+      // 오버레이를 닫은 그 탭의 지연 콜백이면 소비하고 끝 (닫기만, 액션 없음)
+      if (consumeSuppression()) return;
+      if (isPopupOpen() || isComposerOpen()) { dismissOverlays(); return; }
+      openComposer(guId, lat, lng);
+    },
+    // 지도 어디를 탭해도(폴리곤 밖 회색 포함) 즉시 닫기. 태그 탭은 예외
+    onBareMapTap: (e) => {
+      const target = e.originalEvent?.target;
+      if (target?.closest?.('.tag-marker')) return;
+      dismissOverlays();
+    },
+    // 팬·줌 시 카드·작성창이 좌표를 따라다님 (A안)
+    onViewChange: () => { repositionPopup(); repositionComposer(); },
   });
 
   initPopup({
@@ -64,6 +79,25 @@ async function main() {
 
 function goDistrict(guId) {
   openDistrict(guId);
+}
+
+// 오버레이(팝업·작성창) 일괄 닫기.
+// 닫은 그 탭의 폴리곤 지연 콜백(작성창 열기)이 실행되지 않도록 1회용 억제 플래그를 세움.
+// 플래그는 다음 콜백이 소비하거나 1.5초 후 만료 (더블탭 줌으로 콜백이 취소되는 경우 대비)
+let suppressUntil = 0;
+function dismissOverlays() {
+  if (isPopupOpen() || isComposerOpen()) {
+    closePopup();
+    closeComposer();
+    suppressUntil = Date.now() + 1500;
+  }
+}
+function consumeSuppression() {
+  if (Date.now() < suppressUntil) {
+    suppressUntil = 0;
+    return true;
+  }
+  return false;
 }
 
 // 개발용 위치 시뮬레이션 바 — 실제 앱에서는 위치 SDK로 대체
