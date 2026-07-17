@@ -5,6 +5,7 @@ import { getState, getDistrict } from './store.js';
 import { addReaction, myReaction, reactionCounts } from './reactions.js';
 import { reportTag, REPORT_REASONS } from './moderation.js';
 import { getTossKey } from './mock-toss.js';
+import { tagScreenPoint } from './map.js';
 import { toast, escapeHtml } from './ui.js';
 
 let currentTagId = null;
@@ -25,7 +26,28 @@ export function initPopup(handlers) {
 export function openPopup(tagId) {
   currentTagId = tagId;
   render();
-  document.getElementById('tag-popup').hidden = false;
+  const el = document.getElementById('tag-popup');
+  el.hidden = false;
+  positionNearTag(el, tagId);
+}
+
+// 카드를 탭한 라벨 옆에 배치 (화면 밖으로 잘리지 않게 보정)
+function positionNearTag(el, tagId) {
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+  const pt = tagScreenPoint(tagId);
+  if (!pt) {
+    // 지도에 없는 태그면 하단 중앙 폴백
+    el.style.left = Math.max((window.innerWidth - w) / 2, 8) + 'px';
+    el.style.top = window.innerHeight - h - 24 + 'px';
+    return;
+  }
+  const left = Math.min(Math.max(pt.x - w / 2, 8), Math.max(window.innerWidth - w - 8, 8));
+  let top = pt.y + 16; // 기본: 라벨 아래
+  if (top + h > window.innerHeight - 12) top = pt.y - h - 16; // 아래 공간 없으면 위
+  if (top < 60) top = 60;
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
 }
 
 export function closePopup() {
@@ -80,6 +102,7 @@ function handleClick(e) {
   if (e.target.closest('[data-more]')) {
     const menu = document.getElementById('popup-report-menu');
     menu.hidden = !menu.hidden; // ⋯ 한 겹 숨김 = 실수 신고 방지
+    positionNearTag(document.getElementById('tag-popup'), currentTagId); // 높이 변화 반영
     return;
   }
   const reasonBtn = e.target.closest('[data-reason]');

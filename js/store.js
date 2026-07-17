@@ -96,15 +96,23 @@ export function getDistrict(guId) {
   return state.districts.find((d) => d.guId === guId);
 }
 
-// 폴리곤 외곽 꼭짓점 평균 (프로토타입용 근사 중심)
+// 폴리곤 면적 무게중심 (신발끈 공식) — 꼭짓점 평균보다 오목한 구에서도 정중앙에 가까움
 function ringCentroid(geometry) {
   const rings = geometry.type === 'Polygon'
     ? geometry.coordinates
     : geometry.coordinates.flat();
   const pts = rings[0];
-  const lng = pts.reduce((a, p) => a + p[0], 0) / pts.length;
-  const lat = pts.reduce((a, p) => a + p[1], 0) / pts.length;
-  return [lat, lng];
+  let area = 0;
+  let cx = 0;
+  let cy = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const cross = pts[i][0] * pts[i + 1][1] - pts[i + 1][0] * pts[i][1];
+    area += cross;
+    cx += (pts[i][0] + pts[i + 1][0]) * cross;
+    cy += (pts[i][1] + pts[i + 1][1]) * cross;
+  }
+  if (area === 0) return [pts[0][1], pts[0][0]];
+  return [cy / (3 * area), cx / (3 * area)]; // [lat, lng]
 }
 
 export function applyReportState(tagId) {

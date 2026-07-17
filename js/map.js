@@ -30,7 +30,7 @@ export function initMap(h) {
     doubleClickZoom: true, // §9-1: 더블탭 = 줌 제스처 (상세 진입에 쓰지 않음)
     minZoom: 9,
     maxZoom: 13,
-    zoomSnap: 0.5, // 서울 경계 fit이 정수 줌에 갇히지 않게
+    zoomSnap: 0.1, // 서울 전체가 화면에 간신히 차게 fit (정수 줌에 갇히지 않게)
   });
   renderDistricts();
   guLabelGroup = L.layerGroup().addTo(map);
@@ -39,7 +39,7 @@ export function initMap(h) {
   // 레이아웃 확정 후 서울 전체에 맞춤 (컨테이너 크기 0 문제 방지)
   requestAnimationFrame(() => {
     map.invalidateSize();
-    map.fitBounds(geoLayer.getBounds(), { padding: [8, 8] });
+    map.fitBounds(geoLayer.getBounds(), { padding: [2, 2] });
     renderGuLabels();
     renderTags();
   });
@@ -87,7 +87,7 @@ export function renderGuLabels() {
         interactive: false,
         keyboard: false,
         icon: L.divIcon({
-          html: `<span class="gu-label ${near ? 'near' : ''}">${d.name} Lv.${d.level}</span>`,
+          html: `<span class="gu-label ${near ? 'near' : ''}">Lv.${d.level} ${d.name}</span>`,
           className: 'gu-label-wrap',
           iconSize: null,
         }),
@@ -152,18 +152,15 @@ export function renderTags() {
     const box = labelBox(t, displayTier);
     const pp = map.project(anchor, zoom); // 줌에만 의존하는 절대 픽셀 좌표
 
-    // 아래로 밀어내며 빈자리 탐색. 몇 칸 안에 자리가 없으면 하위 태그는 생략
+    // 앵커 가까이에서 상하 교대로 빈자리 탐색. 없으면 하위 태그는 생략
     // (마커 좌표는 원 앵커 유지 — 오프셋은 라벨 시각 이동만. 구 밖 유배 방지)
-    let offsetY = 0;
-    let tries = 0;
-    const collides = () => placedBoxes.some(
-      (p) => Math.abs(p.x - pp.x) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + offsetY)) < (p.h + box.h) / 2
+    const h = box.h * 0.9;
+    const candidates = [0, h, -h, 2 * h, -2 * h];
+    const collidesAt = (dy) => placedBoxes.some(
+      (p) => Math.abs(p.x - pp.x) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
     );
-    while (tries < 5 && collides()) {
-      offsetY += box.h * 0.8;
-      tries++;
-    }
-    if (collides()) return; // 상위 태그 우선, 자리 없으면 표시 생략
+    const offsetY = candidates.find((dy) => !collidesAt(dy));
+    if (offsetY === undefined) return; // 상위 태그 우선, 자리 없으면 표시 생략
     placedBoxes.push({ x: pp.x, y: pp.y + offsetY, w: box.w, h: box.h });
 
     const marker = L.marker(anchor, {
@@ -225,6 +222,15 @@ export function latLngToPagePoint(lat, lng) {
   const rect = document.getElementById('map').getBoundingClientRect();
   const p = map.latLngToContainerPoint([lat, lng]);
   return { x: rect.left + p.x, y: rect.top + p.y };
+}
+
+// 태그 라벨의 실제 화면 위치 (충돌 오프셋 포함) — 팝업을 라벨 옆에 띄울 때 사용
+export function tagScreenPoint(tagId) {
+  const entry = markersByTagId[tagId];
+  if (!entry) return null;
+  const ll = entry.marker.getLatLng();
+  const pt = latLngToPagePoint(ll.lat, ll.lng);
+  return { x: pt.x, y: pt.y + (entry.offsetY || 0) };
 }
 
 function escapeHtml(str) {

@@ -18,7 +18,7 @@
 .gu-label-wrap { pointer-events: none !important; background: none; border: none; }
 .gu-label {
   display: inline-block;
-  transform: translate(-50%, -170%); /* 구 중심 태그 라벨과 겹치지 않게 위로 */
+  transform: translate(-50%, -50%); /* 구 정중앙 */
   white-space: nowrap;
   font-size: 10px;
   font-weight: 700;
@@ -81,14 +81,10 @@
   cursor: pointer;
 }
 
-/* ── 태그 완전체 카드 팝업 (§9-1) ── */
+/* ── 태그 완전체 카드 팝업 (§9-1) — 탭한 라벨 옆에 뜸 (JS가 left/top 지정) ── */
 .popup-card {
-  position: absolute;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  width: calc(100% - 32px);
-  max-width: 360px;
+  position: fixed;
+  width: min(320px, calc(100vw - 16px));
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 14px;

@@ -9,7 +9,7 @@ export function renderRankingSheet() {
     const rows = categoryRanking(cat.id).slice(0, 10).map((d, i) => `
       <li class="rank-row">
         <span class="rank-no">${i + 1}</span>
-        <span class="rank-name">${d.name} <small>Lv.${d.level}</small></span>
+        <span class="rank-name"><small>Lv.${d.level}</small> ${d.name}</span>
         <span class="rank-val">${cat.id === 'rising' ? '×' + d.growth.toFixed(2) : d.score + '점'}</span>
       </li>`).join('');
     return `

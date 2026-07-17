@@ -64,7 +64,7 @@ function render() {
   document.getElementById('sheet-district').innerHTML = `
     <div class="sheet-grab"></div>
     <div class="district-head">
-      <h2>${d.name} Lv.${d.level}</h2>
+      <h2>Lv.${d.level} ${d.name}</h2>
       ${s.user.homeGuId === d.guId ? '<span class="home-badge">🏠 내 홈</span>' : ''}
     </div>
     <div class="sort-bar">
