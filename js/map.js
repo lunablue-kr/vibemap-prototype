@@ -73,13 +73,15 @@ export function renderDistricts() {
 }
 
 // 태그 라벨 HTML: [최다 리액션 아이콘 + 총합] + 텍스트 1줄 (크기별 글자수 제한)
-function tagHtml(t, displayTier) {
+// offsetY: 충돌 회피용 픽셀 오프셋 — 마커 좌표는 건드리지 않고 라벨만 시각적으로 밀어냄
+function tagHtml(t, displayTier, offsetY = 0) {
   const tier = displayTier || t.tier;
   const chars = CONFIG.LABEL_CHARS[tier];
   const text = t.text.length > chars ? t.text.slice(0, chars) + '…' : t.text;
   const marker = t.isResident ? '🏠' : '🚩';
   const count = t.counts.total > 0 ? `${t.topType.emoji} ${t.counts.total} ` : `${marker} `;
-  return `<span class="tag-marker ${tier}" data-tag="${t.id}">${count}${escapeHtml(text)}</span>`;
+  const style = `transform: translate(-50%, calc(-50% + ${offsetY}px));`;
+  return `<span class="tag-marker ${tier}" data-tag="${t.id}" style="${style}">${count}${escapeHtml(text)}</span>`;
 }
 
 // 줌별 구당 표시 상한 (§9-3): 전체 뷰 = 1개, 줌인할수록 상위 10개까지 점진 확대
@@ -112,8 +114,9 @@ export function renderTags() {
     .flatMap(([guId, list]) => list.slice(0, cap))
     .sort((a, b) => b.counts.total - a.counts.total);
 
-  const placedBoxes = []; // 픽셀 공간 전역 충돌 회피
-  const farView = map.getZoom() < CONFIG.MAP_NEAR_ZOOM;
+  const placedBoxes = []; // 절대 투영 좌표(화면 중심 무관) 기준 충돌 회피 — 팬 중에도 배치 유지
+  const zoom = map.getZoom();
+  const farView = zoom < CONFIG.MAP_NEAR_ZOOM;
   shown.forEach((t) => {
     const d = s.districts.find((x) => x.guId === t.guId);
     // 고정석(§9-3): 주간 1위 태그 = 구 중심. 전체 뷰에선 구당 1개뿐이므로 모두 구 중심 앵커
@@ -122,30 +125,29 @@ export function renderTags() {
     // 전체 뷰: 공간이 좁아 전부 작은 크기 (줌인하면 §9-3 크기 단계 적용)
     const displayTier = farView ? 'small' : t.tier;
     const box = labelBox(t, displayTier);
-    const pt = map.latLngToContainerPoint(anchor);
+    const pp = map.project(anchor, zoom); // 줌에만 의존하는 절대 픽셀 좌표
 
-    // 플로팅 칩·아이콘 아래로는 침범 금지 (상단 킵아웃)
-    if (pt.y < 64) pt.y = 64;
-    // 앵커에서 아래로 밀어내며 빈자리 탐색 (§9-3 근사 구현 — 정식 구현은 구 경계 내 제한)
+    // 아래로 밀어내며 빈자리 탐색. 몇 칸 안에 자리가 없으면 하위 태그는 생략
+    // (마커 좌표는 원 앵커 유지 — 오프셋은 라벨 시각 이동만. 구 밖 유배 방지)
+    let offsetY = 0;
     let tries = 0;
-    while (
-      tries < 20 &&
-      placedBoxes.some(
-        (p) => Math.abs(p.x - pt.x) < (p.w + box.w) / 2 && Math.abs(p.y - pt.y) < (p.h + box.h) / 2
-      )
-    ) {
-      pt.y += box.h * 0.75;
+    const collides = () => placedBoxes.some(
+      (p) => Math.abs(p.x - pp.x) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + offsetY)) < (p.h + box.h) / 2
+    );
+    while (tries < 5 && collides()) {
+      offsetY += box.h * 0.8;
       tries++;
     }
-    placedBoxes.push({ x: pt.x, y: pt.y, w: box.w, h: box.h });
+    if (collides()) return; // 상위 태그 우선, 자리 없으면 표시 생략
+    placedBoxes.push({ x: pp.x, y: pp.y + offsetY, w: box.w, h: box.h });
 
-    const marker = L.marker(map.containerPointToLatLng(pt), {
-      icon: L.divIcon({ html: tagHtml(t, displayTier), className: 'tag-marker-wrap', iconSize: null }),
+    const marker = L.marker(anchor, {
+      icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY), className: 'tag-marker-wrap', iconSize: null }),
       zIndexOffset: t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
     });
     marker.on('click', () => handlers.onTagClick?.(t.id));
     tagLayerGroup.addLayer(marker);
-    markersByTagId[t.id] = { marker, tag: t };
+    markersByTagId[t.id] = { marker, tag: t, offsetY };
   });
 }
 
@@ -169,7 +171,9 @@ export function updateSingleTag(tagId) {
   const tier = sizeTier(counts.total, entry.tag.guRank);
   const t = { ...entry.tag, counts, topType, tier };
   const displayTier = map.getZoom() < CONFIG.MAP_NEAR_ZOOM ? 'small' : tier;
-  entry.marker.setIcon(L.divIcon({ html: tagHtml(t, displayTier), className: 'tag-marker-wrap', iconSize: null }));
+  entry.marker.setIcon(
+    L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0), className: 'tag-marker-wrap', iconSize: null })
+  );
 }
 
 export function refreshMap() {
