@@ -28,18 +28,23 @@ export function initMap(h) {
     zoomControl: false,
     attributionControl: false, // 타일 제거로 저작권 표기 불필요 (GeoJSON은 자체 데이터)
     doubleClickZoom: true, // §9-1: 더블탭 = 줌 제스처 (상세 진입에 쓰지 않음)
-    minZoom: 9,
+    minZoom: 9, // 초기화 후 fit+부스트 값으로 재설정됨
     maxZoom: 13,
-    zoomSnap: 0.1, // 서울 전체가 화면에 간신히 차게 fit (정수 줌에 갇히지 않게)
+    zoomSnap: 0.1, // fit이 정수 줌에 갇히지 않게
+    maxBoundsViscosity: 1.0, // 서울 밖으로 팬 금지 (아래 setMaxBounds와 세트)
   });
   renderDistricts();
   guLabelGroup = L.layerGroup().addTo(map);
   tagLayerGroup = L.layerGroup().addTo(map);
   map.setView([37.5665, 126.978], 10);
-  // 레이아웃 확정 후 서울 전체에 맞춤 (컨테이너 크기 0 문제 방지)
+  // 레이아웃 확정 후 시작 뷰 설정: 전체 fit + 부스트 (좌우 살짝 잘림 감수, 더 축소 불가)
   requestAnimationFrame(() => {
     map.invalidateSize();
-    map.fitBounds(geoLayer.getBounds(), { padding: [2, 2] });
+    const bounds = geoLayer.getBounds();
+    const startZoom = map.getBoundsZoom(bounds) + CONFIG.INITIAL_ZOOM_BOOST;
+    map.setMinZoom(startZoom);
+    map.setMaxBounds(bounds.pad(0.05));
+    map.setView(bounds.getCenter(), startZoom);
     renderGuLabels();
     renderTags();
   });

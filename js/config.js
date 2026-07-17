@@ -26,6 +26,7 @@ export const CONFIG = {
   // 승격·자리싸움 (§6, §9-3 확정)
   PROMOTE_MID_THRESHOLD: 3, // 합산 3 = 중간 크기
   BIG_TOP_N: 10, // 구 내 합산 상위 10개만 큰 크기
+  INITIAL_ZOOM_BOOST: 0.4, // 시작 줌: 전체 fit보다 이만큼 확대 (좌우 살짝 잘림 감수). 최소 줌도 이 값으로 고정
   MAP_CAP_FAR: 1, // 서울 전체 줌: 구당 상위 1~2개 (과밀 방지로 1)
   MAP_CAPS_BY_ZOOM: { 11: 3, 12: 6, 13: 10 }, // 줌인할수록 상위 10개까지 점진 확대 (§9-3)
   MAP_NEAR_ZOOM: 11, // 이 줌 이상부터 크기 단계 표시
