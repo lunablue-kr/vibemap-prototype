@@ -7,6 +7,7 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
   background: #fff;
   color: #222;
+  touch-action: pan-x pan-y; /* 페이지 핀치줌 차단 — fixed 요소가 뷰포트 밖으로 잘리는 문제 방지 */
 }
 
 body {

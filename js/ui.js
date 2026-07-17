@@ -27,3 +27,10 @@ export function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
+
+// 실제로 보이는 뷰포트 영역 (페이지가 핀치줌된 상태여도 카드가 화면 안에 오게)
+export function viewportBox() {
+  const vv = window.visualViewport;
+  if (vv) return { x: vv.offsetLeft, y: vv.offsetTop, w: vv.width, h: vv.height };
+  return { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight };
+}

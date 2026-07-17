@@ -6,7 +6,7 @@ import { getDistrict } from './store.js';
 import { createTag, canWriteIn } from './tags.js';
 import { canPost } from './limits.js';
 import { latLngToPagePoint } from './map.js';
-import { toast } from './ui.js';
+import { toast, viewportBox } from './ui.js';
 
 let pending = null; // { guId, lat, lng }
 let onCreated = null;
@@ -53,8 +53,9 @@ export function openComposer(guId, lat, lng) {
     ${body}`;
 
   const pt = latLngToPagePoint(lat, lng);
-  el.style.left = Math.min(Math.max(pt.x - 130, 8), window.innerWidth - 268) + 'px';
-  el.style.top = Math.max(pt.y - 20, 60) + 'px';
+  const v = viewportBox();
+  el.style.left = Math.min(Math.max(pt.x - 130, v.x + 8), v.x + v.w - 268) + 'px';
+  el.style.top = Math.min(Math.max(pt.y - 20, v.y + 60), v.y + v.h - 180) + 'px';
   el.hidden = false;
   document.getElementById('composer-input')?.focus();
 }
