@@ -72,9 +72,8 @@ async function main() {
     renderMySheet();
     openSheet('my');
   });
-  document.getElementById('reset-btn').addEventListener('click', () => {
-    if (confirm('프로토타입 데이터를 초기화할까요?')) resetAll();
-  });
+  // 초기화 버튼은 지인 공유를 위해 UI에서 제거. 필요 시 콘솔에서 window.__vibemapReset()
+  window.__vibemapReset = resetAll;
   document.getElementById('sheet-dim').addEventListener('click', closeSheets);
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-close-sheet]')) closeSheets();

@@ -167,7 +167,10 @@ export function renderTags() {
   const blockedGu = new Set(); // k위가 생략된 구 — 하위 순위도 생략 (prefix 보장)
   const eastX = map.project(geoLayer.getBounds().getNorthEast(), zoom).x; // 서울 동쪽 경계 (박스 뒤집기 기준)
   shown.forEach((t) => {
-    if (blockedGu.has(t.guId)) return;
+    if (blockedGu.has(t.guId)) {
+      window.__labelDrops?.push({ id: t.id, gu: t.guId, rank: t.guRank, reason: 'blocked-prefix' });
+      return;
+    }
     const d = s.districts.find((x) => x.guId === t.guId);
     // 앵커 = 항상 실제 좌표. 고정석(§9-3: 주간 1위 = 구 중심)만 예외 — 줌 경계 점프 방지
     const useCentroid = d && topByGu[t.guId] === t.id;
@@ -186,22 +189,38 @@ export function renderTags() {
       const flip = pp.x + 9 + box.w > eastX + 10; // 동쪽 경계 밖으로 나가면 왼쪽으로
       const bx = pp.x + (flip ? -(9 + box.w / 2) : 9 + box.w / 2);
       const usable = (dy) => {
-        const hit = placedBoxes.some(
+        const hitBox = placedBoxes.find(
           (p) => Math.abs(p.x - bx) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
         );
-        if (hit) return false;
+        if (window.__traceTag === t.id) {
+          window.__traceLog?.push({ tier, dy, bx: Math.round(bx), ppy: Math.round(pp.y), hit: hitBox ? { x: Math.round(hitBox.x), y: Math.round(hitBox.y), w: hitBox.w } : null });
+        }
+        if (hitBox) return false;
         if (dy !== 0 && d) {
           const ll = map.unproject(L.point(pp.x, pp.y + dy), zoom);
-          if (!pointInDistrict(ll.lat, ll.lng, d.geometry)) return false;
+          if (!pointInDistrict(ll.lat, ll.lng, d.geometry)) {
+            if (window.__traceTag === t.id) window.__traceLog?.push({ tier, dy, outOfGu: true });
+            return false;
+          }
         }
         return true;
       };
-      const dy = [0, h, -h].find(usable);
+      const dy = [0, h, -h, 2 * h, -2 * h].find(usable);
       if (dy !== undefined) { placement = { tier, box, dy, bx, flip }; break; }
     }
     if (!placement) {
-      blockedGu.add(t.guId); // 이 구는 여기서 끊음 — 하위 순위가 먼저 튀어나오는 것 방지
-      return;
+      // 최대 줌 부근: 생략 금지 — 자리 없으면 작은 크기·겹침 허용으로라도 표시
+      // (요구사항: 최대 줌인 시 노출 가능한 최대치 전부. 핀이 제자리라 겹쳐도 지점은 명확)
+      if (zoom >= map.getMaxZoom() - 0.5) {
+        const tier = 'small';
+        const box = labelBox(t, tier);
+        const flip = pp.x + 9 + box.w > eastX + 10;
+        placement = { tier, box, dy: 0, bx: pp.x + (flip ? -(9 + box.w / 2) : 9 + box.w / 2), flip };
+      } else {
+        blockedGu.add(t.guId); // 이 구는 여기서 끊음 — 하위 순위가 먼저 튀어나오는 것 방지
+        window.__labelDrops?.push({ id: t.id, gu: t.guId, rank: t.guRank, reason: 'no-slot' });
+        return;
+      }
     }
     const displayTier = placement.tier;
     const offsetY = placement.dy;
