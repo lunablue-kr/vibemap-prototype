@@ -12,6 +12,12 @@ import { initDistrictSheet, openDistrict, refreshDistrict } from './screens/dist
 import { renderRankingSheet } from './screens/ranking.js';
 import { initMySheet, renderMySheet } from './screens/my.js';
 
+// iOS Safari는 뷰포트 메타·touch-action으로 페이지 핀치줌이 안 막힘 — 사파리 전용
+// 제스처 이벤트를 직접 차단 (지도 핀치줌은 Leaflet이 터치 이벤트로 자체 처리라 영향 없음)
+['gesturestart', 'gesturechange', 'gestureend'].forEach((type) =>
+  document.addEventListener(type, (e) => e.preventDefault())
+);
+
 async function main() {
   try {
     await Promise.all([initStore(), loadDictionary()]);
