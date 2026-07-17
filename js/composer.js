@@ -6,7 +6,7 @@ import { getDistrict } from './store.js';
 import { createTag, canWriteIn } from './tags.js';
 import { canPost } from './limits.js';
 import { latLngToPagePoint } from './map.js';
-import { toast, viewportBox, notifyOverlayOpened } from './ui.js';
+import { toast, viewportBox, notifyOverlayOpened, consumeOverlayHistory } from './ui.js';
 
 let pending = null; // { guId, lat, lng }
 let onCreated = null;
@@ -69,8 +69,11 @@ export function isComposerOpen() {
 }
 
 export function closeComposer() {
-  document.getElementById('composer').hidden = true;
+  const el = document.getElementById('composer');
+  const wasOpen = !el.hidden;
+  el.hidden = true;
   pending = null;
+  if (wasOpen) consumeOverlayHistory();
 }
 
 function handleClick(e) {

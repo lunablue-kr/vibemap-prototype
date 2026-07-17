@@ -6,7 +6,7 @@ import { addReaction, myReaction, reactionCounts } from './reactions.js';
 import { reportTag, REPORT_REASONS } from './moderation.js';
 import { getTossKey } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
-import { toast, escapeHtml, viewportBox, notifyOverlayOpened } from './ui.js';
+import { toast, escapeHtml, viewportBox, notifyOverlayOpened, consumeOverlayHistory } from './ui.js';
 
 let currentTagId = null;
 let onChange = null; // 리액션·신고 후 (지도 단일 갱신 등)
@@ -53,9 +53,12 @@ function positionNearTag(el, tagId) {
 }
 
 export function closePopup() {
-  document.getElementById('tag-popup').hidden = true;
+  const el = document.getElementById('tag-popup');
+  const wasOpen = !el.hidden;
+  el.hidden = true;
   document.getElementById('popup-report-menu').hidden = true;
   currentTagId = null;
+  if (wasOpen) consumeOverlayHistory();
 }
 
 function render() {

@@ -7,6 +7,7 @@ import { getState } from './store.js';
 import { tagsForMap, sizeTier } from './tags.js';
 import { reactionCounts } from './reactions.js';
 import { weeklyTopTagIdByGu } from './ranking.js';
+import { escapeHtml } from './ui.js';
 
 let map = null;
 let geoLayer = null;
@@ -49,7 +50,14 @@ export function initMap(h) {
     renderGuLabels();
     renderTags();
   });
-  map.on('zoomend', () => { renderGuLabels(); renderTags(); }); // 전체 재배치는 진입·줌 변경 시에만 (§9-3)
+  // 재배치는 뷰 변경 완료 시에만 (§9-3 취지 = 리액션마다 재배치 금지. 팬 후엔
+  // 화면 기준 플립·킵아웃 재계산이 필요해서 moveend 재배치 — 줌도 moveend를 발생시킴)
+  map.on('zoomend', renderGuLabels);
+  let relayoutTimer = null;
+  map.on('moveend', () => {
+    clearTimeout(relayoutTimer);
+    relayoutTimer = setTimeout(renderTags, 120);
+  });
   // 지도 조작(팬·줌) 시작 = 오버레이 자연스럽게 닫힘 (B안)
   map.on('movestart zoomstart', () => handlers.onMapMoveStart?.());
   map.on('click', (e) => handlers.onBareMapTap?.(e)); // 오버레이 닫기 규칙용 (폴리곤·마커 탭에서도 발생)
@@ -114,15 +122,16 @@ export function renderGuLabels() {
 // 태그 = 지점 핀(🏠/🚩, 정확한 좌표에 고정) + 오른쪽 박스([최다 리액션 + 총합] 텍스트 1줄)
 // offsetY: 충돌 회피 시 박스만 밀리고 핀은 지점에 남음 (어느 지점의 태그인지 항상 명확)
 const PIN_GAP = 9; // 핀 중심 → 박스 간격(px)
-// flip: 서울 동쪽 경계 근처면 박스를 핀 왼쪽에 (화면 밖 잘림 방지)
-function tagHtml(t, displayTier, offsetY = 0, flip = false) {
+// offsetX: 핀 기준 박스 왼쪽 끝 위치(px). 배치 로직이 화면 안으로 클램프해서 전달
+function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP) {
   const tier = displayTier || t.tier;
   const chars = CONFIG.LABEL_CHARS[tier];
-  const text = t.text.length > chars ? t.text.slice(0, chars) + '…' : t.text;
+  // 코드포인트 단위 절단 (이모지 포함 텍스트에서 서로게이트 쌍 깨짐 방지)
+  const cps = Array.from(t.text);
+  const text = cps.length > chars ? cps.slice(0, chars).join('') + '…' : t.text;
   const pin = t.isResident ? '🏠' : '🚩';
   const count = t.counts.total > 0 ? `${t.topType.emoji} ${t.counts.total} ` : '';
-  const x = flip ? `calc(-100% - ${PIN_GAP}px)` : `${PIN_GAP}px`;
-  const style = `transform: translate(${x}, calc(-50% + ${offsetY}px));`;
+  const style = `transform: translate(${offsetX}px, calc(-50% + ${offsetY}px));`;
   return `<span class="tag-pin ${tier}" data-tag="${t.id}">${pin}</span>` +
     `<span class="tag-marker ${tier}" data-tag="${t.id}" style="${style}">${count}${escapeHtml(text)}</span>`;
 }
@@ -139,7 +148,7 @@ function guCap() {
 
 // 라벨 픽셀 크기 근사 (충돌 계산용)
 function labelBox(t, tier) {
-  const chars = Math.min(t.text.length, CONFIG.LABEL_CHARS[tier]);
+  const chars = Math.min(Array.from(t.text).length, CONFIG.LABEL_CHARS[tier]);
   const px = tier === 'big' ? 14 : tier === 'mid' ? 12 : 10;
   return { w: 44 + chars * px, h: tier === 'big' ? 30 : tier === 'mid' ? 24 : 18 };
 }
@@ -162,10 +171,22 @@ export function renderTags() {
     .flatMap(([guId, list]) => list.slice(0, cap))
     .sort((a, b) => b.counts.total - a.counts.total || a.guRank - b.guRank);
 
-  const placedBoxes = []; // 절대 투영 좌표(화면 중심 무관) 기준 충돌 회피 — 팬 중에도 배치 유지
+  const placedBoxes = []; // 절대 투영 좌표 기준 충돌 회피 (플립·킵아웃은 화면 기준 → moveend마다 재배치)
   const zoom = map.getZoom();
   const blockedGu = new Set(); // k위가 생략된 구 — 하위 순위도 생략 (prefix 보장)
-  const eastX = map.project(geoLayer.getBounds().getNorthEast(), zoom).x; // 서울 동쪽 경계 (박스 뒤집기 기준)
+  // 현재 화면의 절대 픽셀 경계 — 박스 좌우 플립·상단 킵아웃은 "보이는 화면" 기준
+  const vb = map.getPixelBounds();
+  const TOP_KEEPOUT = 80; // 개발 바 + 플로팅 칩·아이콘 영역
+
+  // 박스 X 배치: 기본 핀 오른쪽. 화면 오른쪽을 넘으면 왼쪽으로 플립,
+  // 그래도 안 되면 화면 안으로 슬라이드 (박스는 항상 화면 안에서 온전히 보임)
+  const placeBoxX = (pp, box) => {
+    let left = pp.x + 9;
+    if (left + box.w > vb.max.x - 6) left = pp.x - 9 - box.w;
+    left = Math.min(Math.max(left, vb.min.x + 6), vb.max.x - 6 - box.w);
+    return { tx: left - pp.x, bx: left + box.w / 2 };
+  };
+
   shown.forEach((t) => {
     if (blockedGu.has(t.guId)) {
       window.__labelDrops?.push({ id: t.id, gu: t.guId, rank: t.guRank, reason: 'blocked-prefix' });
@@ -186,27 +207,22 @@ export function renderTags() {
     for (const tier of tiersToTry) {
       const box = labelBox(t, tier);
       const h = box.h * 0.9;
-      const flip = pp.x + 9 + box.w > eastX + 10; // 동쪽 경계 밖으로 나가면 왼쪽으로
-      const bx = pp.x + (flip ? -(9 + box.w / 2) : 9 + box.w / 2);
+      const { tx, bx } = placeBoxX(pp, box);
       const usable = (dy) => {
-        const hitBox = placedBoxes.find(
+        // 상단 킵아웃: 화면 위 고정 UI(개발 바·칩·마이) 밑으로 못 들어가게
+        if (pp.y + dy - box.h / 2 < vb.min.y + TOP_KEEPOUT) return false;
+        const hit = placedBoxes.some(
           (p) => Math.abs(p.x - bx) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
         );
-        if (window.__traceTag === t.id) {
-          window.__traceLog?.push({ tier, dy, bx: Math.round(bx), ppy: Math.round(pp.y), hit: hitBox ? { x: Math.round(hitBox.x), y: Math.round(hitBox.y), w: hitBox.w } : null });
-        }
-        if (hitBox) return false;
+        if (hit) return false;
         if (dy !== 0 && d) {
           const ll = map.unproject(L.point(pp.x, pp.y + dy), zoom);
-          if (!pointInDistrict(ll.lat, ll.lng, d.geometry)) {
-            if (window.__traceTag === t.id) window.__traceLog?.push({ tier, dy, outOfGu: true });
-            return false;
-          }
+          if (!pointInDistrict(ll.lat, ll.lng, d.geometry)) return false;
         }
         return true;
       };
       const dy = [0, h, -h, 2 * h, -2 * h].find(usable);
-      if (dy !== undefined) { placement = { tier, box, dy, bx, flip }; break; }
+      if (dy !== undefined) { placement = { tier, box, dy, bx, tx }; break; }
     }
     if (!placement) {
       // 최대 줌 부근: 생략 금지 — 자리 없으면 작은 크기·겹침 허용으로라도 표시
@@ -214,8 +230,11 @@ export function renderTags() {
       if (zoom >= map.getMaxZoom() - 0.5) {
         const tier = 'small';
         const box = labelBox(t, tier);
-        const flip = pp.x + 9 + box.w > eastX + 10;
-        placement = { tier, box, dy: 0, bx: pp.x + (flip ? -(9 + box.w / 2) : 9 + box.w / 2), flip };
+        const { tx, bx } = placeBoxX(pp, box);
+        // 상단 킵아웃만은 지킴 (플로팅 UI 밑으로 들어가지 않게 아래로 내림)
+        const minY = vb.min.y + TOP_KEEPOUT + box.h / 2;
+        const dy = pp.y < minY ? minY - pp.y : 0;
+        placement = { tier, box, dy, bx, tx };
       } else {
         blockedGu.add(t.guId); // 이 구는 여기서 끊음 — 하위 순위가 먼저 튀어나오는 것 방지
         window.__labelDrops?.push({ id: t.id, gu: t.guId, rank: t.guRank, reason: 'no-slot' });
@@ -227,12 +246,12 @@ export function renderTags() {
     placedBoxes.push({ x: placement.bx, y: pp.y + offsetY, w: placement.box.w, h: placement.box.h });
 
     const marker = L.marker(anchor, {
-      icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY, placement.flip), className: 'tag-marker-wrap', iconSize: null }),
+      icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY, placement.tx), className: 'tag-marker-wrap', iconSize: null }),
       zIndexOffset: t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
     });
     marker.on('click', () => handlers.onTagClick?.(t.id));
     tagLayerGroup.addLayer(marker);
-    markersByTagId[t.id] = { marker, tag: t, offsetY, flip: placement.flip };
+    markersByTagId[t.id] = { marker, tag: t, offsetY, tx: placement.tx };
   });
 }
 
@@ -257,7 +276,7 @@ export function updateSingleTag(tagId) {
   const t = { ...entry.tag, counts, topType, tier };
   const displayTier = map.getZoom() < CONFIG.LABEL_FULLSIZE_ZOOM ? 'small' : tier;
   entry.marker.setIcon(
-    L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0, entry.flip), className: 'tag-marker-wrap', iconSize: null })
+    L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0, entry.tx ?? 9), className: 'tag-marker-wrap', iconSize: null })
   );
 }
 
@@ -275,7 +294,7 @@ export function panToDistrict(guId) {
   if (!map || !geoLayer) return;
   geoLayer.eachLayer((layer) => {
     if (layer.feature.properties.code === guId) {
-      map.fitBounds(layer.getBounds(), { maxZoom: 12 });
+      map.fitBounds(layer.getBounds(), { maxZoom: CONFIG.PAN_TO_DISTRICT_MAX_ZOOM });
     }
   });
 }
@@ -294,12 +313,6 @@ export function tagScreenPoint(tagId) {
   const ll = entry.marker.getLatLng();
   const pt = latLngToPagePoint(ll.lat, ll.lng);
   return { x: pt.x, y: pt.y + (entry.offsetY || 0) };
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 // 점이 구 폴리곤 안에 있는지 (ray casting). 좌표는 GeoJSON [lng, lat]

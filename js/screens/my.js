@@ -51,7 +51,7 @@ export function renderMySheet() {
     <div class="my-section">
       <h3>오늘의 활동</h3>
       <p>오늘 남은 횟수 — 글쓰기 ${l.postsLeft}회 · 리액션 ${l.reactionsLeft}회</p>
-      <button id="watch-ad-btn" class="btn" ${l.adUsed ? 'disabled' : ''}>광고 보고 글쓰기 3회 충전 (목)</button>
+      <button id="watch-ad-btn" class="btn" ${l.adUsed ? 'disabled' : ''}>광고 보고 글쓰기 3회 충전</button>
     </div>
     <div class="my-section placeholder">
       <h3>뱃지 · 포인트 · 공유 카드</h3>

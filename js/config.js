@@ -56,4 +56,7 @@ export const CONFIG = {
 
   // 랭킹 롤링 칩 (§9-0): Phase 1은 총점·급상승 2종 롤링
   CHIP_ROTATE_MS: 4000,
+
+  // 랭킹 구 탭 → 카메라 이동 시 최대 줌 (크기 단계가 보이는 줌 이상으로)
+  PAN_TO_DISTRICT_MAX_ZOOM: 12.5,
 };

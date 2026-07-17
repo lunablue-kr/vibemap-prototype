@@ -18,7 +18,8 @@
 .gu-label-wrap { pointer-events: none !important; background: none; border: none; }
 .gu-label {
   display: inline-block;
-  transform: translate(-50%, -50%); /* 구 정중앙 */
+  /* 구 중앙 살짝 아래 — 중앙 고정석 핀·태그 박스와 글자 겹침 완화 */
+  transform: translate(-50%, calc(-50% + 20px));
   white-space: nowrap;
   font-size: 10px;
   font-weight: 700;
@@ -54,8 +55,7 @@
 .tag-pin.mid { font-size: 13px; }
 .tag-pin.big { font-size: 15px; }
 .tag-marker {
-  display: inline-block;
-  transform: translate(-50%, -50%);
+  display: inline-block; /* transform은 JS 인라인 스타일이 지정 (핀 기준 좌/우 배치) */
   white-space: nowrap;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid #bbb;
