@@ -29,7 +29,8 @@ export const CONFIG = {
   INITIAL_ZOOM_BOOST: 0.4, // 시작 줌: 전체 fit보다 이만큼 확대 (좌우 살짝 잘림 감수). 최소 줌도 이 값으로 고정
   MAP_CAP_FAR: 1, // 서울 전체 줌: 구당 상위 1~2개 (과밀 방지로 1)
   MAP_CAPS_BY_ZOOM: { 11: 3, 12: 6, 13: 10 }, // 줌인할수록 상위 10개까지 점진 확대 (§9-3)
-  MAP_NEAR_ZOOM: 11, // 이 줌 이상부터 크기 단계 표시
+  MAP_NEAR_ZOOM: 11, // 이 줌 이상부터 구당 상한 확대 시작
+  LABEL_FULLSIZE_ZOOM: 12.5, // 이 줌 이상부터 크기 단계(big/mid) 표시 — 이르면 라벨이 커져 노출 수가 역행함
   LABEL_CHARS: { big: 12, mid: 9, small: 6 }, // 크기 단계별 표시 글자수 (1줄 제한)
 
   // 구 레벨 (§8 확정): Lv2~Lv10 필요 누적 점수

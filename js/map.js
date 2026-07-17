@@ -38,7 +38,8 @@ export function initMap(h) {
   tagLayerGroup = L.layerGroup().addTo(map);
   map.setView([37.5665, 126.978], 10);
   // 레이아웃 확정 후 시작 뷰 설정: 전체 fit + 부스트 (좌우 살짝 잘림 감수, 더 축소 불가)
-  requestAnimationFrame(() => {
+  // setTimeout: 백그라운드 탭에서도 실행되도록 (rAF는 탭이 안 보이면 안 돎)
+  setTimeout(() => {
     map.invalidateSize();
     const bounds = geoLayer.getBounds();
     const startZoom = map.getBoundsZoom(bounds) + CONFIG.INITIAL_ZOOM_BOOST;
@@ -139,41 +140,57 @@ export function renderTags() {
   const topByGu = weeklyTopTagIdByGu();
   const cap = guCap();
 
-  // 표시 대상: 구당 상한 적용 후 전체를 리액션순으로 (상위 태그가 좋은 자리 선점)
+  // ── 노출 규칙 (확정) ──────────────────────────────────────────
+  // 1. 구별 노출은 항상 리액션 순위 1위부터 "연속"이어야 한다 (prefix 보장).
+  //    k위가 자리를 못 잡으면 그 구의 k+1위 이하도 그 줌에서는 노출하지 않는다.
+  // 2. 줌이 깊어질수록 구당 상한(cap)이 늘어 2위, 3위…가 순서대로 추가된다.
+  // 3. 배치 우선권은 전역 리액션 합산순 (동률이면 구 내 순위 우선).
+  // 지역 추가·실시간 순위 변동에도 이 규칙이 유지되어야 함.
   const shown = Object.entries(byGu)
     .flatMap(([guId, list]) => list.slice(0, cap))
-    .sort((a, b) => b.counts.total - a.counts.total);
+    .sort((a, b) => b.counts.total - a.counts.total || a.guRank - b.guRank);
 
   const placedBoxes = []; // 절대 투영 좌표(화면 중심 무관) 기준 충돌 회피 — 팬 중에도 배치 유지
   const zoom = map.getZoom();
-  const farView = zoom < CONFIG.MAP_NEAR_ZOOM;
+  const blockedGu = new Set(); // k위가 생략된 구 — 하위 순위도 생략 (prefix 보장)
   shown.forEach((t) => {
+    if (blockedGu.has(t.guId)) return;
     const d = s.districts.find((x) => x.guId === t.guId);
     // 앵커 = 항상 실제 좌표. 고정석(§9-3: 주간 1위 = 구 중심)만 예외 — 줌 경계 점프 방지
     const useCentroid = d && topByGu[t.guId] === t.id;
     const anchor = useCentroid ? d.centroid : [t.lat, t.lng];
-    // 전체 뷰: 공간이 좁아 전부 작은 크기 (줌인하면 §9-3 크기 단계 적용)
-    const displayTier = farView ? 'small' : t.tier;
-    const box = labelBox(t, displayTier);
     const pp = map.project(anchor, zoom); // 줌에만 의존하는 절대 픽셀 좌표
 
-    // 상하 1칸까지만 밀어내기, 밀린 위치는 자기 구 안이어야 함 (§9-3 "구 경계 안에서만")
-    // 그래도 자리 없으면 이동 대신 생략 (상위 태그 우선, 줌인하면 표시됨)
-    const h = box.h * 0.9;
-    const collidesAt = (dy) => placedBoxes.some(
-      (p) => Math.abs(p.x - pp.x) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
-    );
-    const usable = (dy) => {
-      if (collidesAt(dy)) return false;
-      if (dy !== 0 && d) {
-        const ll = map.unproject(L.point(pp.x, pp.y + dy), zoom);
-        if (!pointInDistrict(ll.lat, ll.lng, d.geometry)) return false;
-      }
-      return true;
-    };
-    const offsetY = [0, h, -h].find(usable);
-    if (offsetY === undefined) return;
-    placedBoxes.push({ x: pp.x, y: pp.y + offsetY, w: box.w, h: box.h });
+    // 크기: LABEL_FULLSIZE_ZOOM부터 §9-3 크기 단계, 그 전엔 전부 작게.
+    // 큰 크기가 자리를 못 잡으면 생략 대신 작은 크기로 강등 시도 — 확대 중 태그가 사라지는 역행 방지.
+    // 배치: 상하 1칸까지만 밀어내기, 밀린 위치는 자기 구 안이어야 함 (§9-3 "구 경계 안에서만")
+    const tiersToTry =
+      zoom >= CONFIG.LABEL_FULLSIZE_ZOOM && t.tier !== 'small' ? [t.tier, 'small'] : ['small'];
+    let placement = null;
+    for (const tier of tiersToTry) {
+      const box = labelBox(t, tier);
+      const h = box.h * 0.9;
+      const usable = (dy) => {
+        const hit = placedBoxes.some(
+          (p) => Math.abs(p.x - pp.x) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
+        );
+        if (hit) return false;
+        if (dy !== 0 && d) {
+          const ll = map.unproject(L.point(pp.x, pp.y + dy), zoom);
+          if (!pointInDistrict(ll.lat, ll.lng, d.geometry)) return false;
+        }
+        return true;
+      };
+      const dy = [0, h, -h].find(usable);
+      if (dy !== undefined) { placement = { tier, box, dy }; break; }
+    }
+    if (!placement) {
+      blockedGu.add(t.guId); // 이 구는 여기서 끊음 — 하위 순위가 먼저 튀어나오는 것 방지
+      return;
+    }
+    const displayTier = placement.tier;
+    const offsetY = placement.dy;
+    placedBoxes.push({ x: pp.x, y: pp.y + offsetY, w: placement.box.w, h: placement.box.h });
 
     const marker = L.marker(anchor, {
       icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY), className: 'tag-marker-wrap', iconSize: null }),
@@ -204,7 +221,7 @@ export function updateSingleTag(tagId) {
   // 임계값 돌파 시 크기 단계 즉시 반영 (§9-3 체감 실시간 승격. 구 내 순위 재계산은 재배치 시)
   const tier = sizeTier(counts.total, entry.tag.guRank);
   const t = { ...entry.tag, counts, topType, tier };
-  const displayTier = map.getZoom() < CONFIG.MAP_NEAR_ZOOM ? 'small' : tier;
+  const displayTier = map.getZoom() < CONFIG.LABEL_FULLSIZE_ZOOM ? 'small' : tier;
   entry.marker.setIcon(
     L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0), className: 'tag-marker-wrap', iconSize: null })
   );
