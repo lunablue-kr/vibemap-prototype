@@ -47,6 +47,7 @@ export async function initStore() {
       totalScore: s.totalScore || 0,
       weeklyHistory: s.weeklyHistory || [0, 0, 0, 0], // 직전 4주 점수 (급상승 분모)
       centroid: ringCentroid(f.geometry), // 고정석(주간 1위 구 중심 고정) 앵커용
+      geometry: f.geometry, // 라벨 밀어내기 구 경계 검사용 (§9-3)
     };
   });
 

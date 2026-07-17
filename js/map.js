@@ -149,23 +149,30 @@ export function renderTags() {
   const farView = zoom < CONFIG.MAP_NEAR_ZOOM;
   shown.forEach((t) => {
     const d = s.districts.find((x) => x.guId === t.guId);
-    // 고정석(§9-3): 주간 1위 태그 = 구 중심. 전체 뷰에선 구당 1개뿐이므로 모두 구 중심 앵커
-    const useCentroid = d && (farView || topByGu[t.guId] === t.id);
+    // 앵커 = 항상 실제 좌표. 고정석(§9-3: 주간 1위 = 구 중심)만 예외 — 줌 경계 점프 방지
+    const useCentroid = d && topByGu[t.guId] === t.id;
     const anchor = useCentroid ? d.centroid : [t.lat, t.lng];
     // 전체 뷰: 공간이 좁아 전부 작은 크기 (줌인하면 §9-3 크기 단계 적용)
     const displayTier = farView ? 'small' : t.tier;
     const box = labelBox(t, displayTier);
     const pp = map.project(anchor, zoom); // 줌에만 의존하는 절대 픽셀 좌표
 
-    // 앵커 가까이에서 상하 교대로 빈자리 탐색. 없으면 하위 태그는 생략
-    // (마커 좌표는 원 앵커 유지 — 오프셋은 라벨 시각 이동만. 구 밖 유배 방지)
+    // 상하 1칸까지만 밀어내기, 밀린 위치는 자기 구 안이어야 함 (§9-3 "구 경계 안에서만")
+    // 그래도 자리 없으면 이동 대신 생략 (상위 태그 우선, 줌인하면 표시됨)
     const h = box.h * 0.9;
-    const candidates = [0, h, -h, 2 * h, -2 * h];
     const collidesAt = (dy) => placedBoxes.some(
       (p) => Math.abs(p.x - pp.x) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
     );
-    const offsetY = candidates.find((dy) => !collidesAt(dy));
-    if (offsetY === undefined) return; // 상위 태그 우선, 자리 없으면 표시 생략
+    const usable = (dy) => {
+      if (collidesAt(dy)) return false;
+      if (dy !== 0 && d) {
+        const ll = map.unproject(L.point(pp.x, pp.y + dy), zoom);
+        if (!pointInDistrict(ll.lat, ll.lng, d.geometry)) return false;
+      }
+      return true;
+    };
+    const offsetY = [0, h, -h].find(usable);
+    if (offsetY === undefined) return;
     placedBoxes.push({ x: pp.x, y: pp.y + offsetY, w: box.w, h: box.h });
 
     const marker = L.marker(anchor, {
@@ -242,4 +249,22 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// 점이 구 폴리곤 안에 있는지 (ray casting). 좌표는 GeoJSON [lng, lat]
+function pointInDistrict(lat, lng, geometry) {
+  const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+  return polys.some((rings) => rayCast(lat, lng, rings[0]));
+}
+
+function rayCast(lat, lng, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
 }
