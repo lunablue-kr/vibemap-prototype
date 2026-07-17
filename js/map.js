@@ -11,6 +11,7 @@ import { weeklyTopTagIdByGu } from './ranking.js';
 let map = null;
 let geoLayer = null;
 let tagLayerGroup = null;
+let guLabelGroup = null;
 let markersByTagId = {};
 let handlers = {}; // { onTagClick(tagId), onEmptyTap(guId, lat, lng) }
 
@@ -32,15 +33,17 @@ export function initMap(h) {
     zoomSnap: 0.5, // 서울 경계 fit이 정수 줌에 갇히지 않게
   });
   renderDistricts();
+  guLabelGroup = L.layerGroup().addTo(map);
   tagLayerGroup = L.layerGroup().addTo(map);
   map.setView([37.5665, 126.978], 10);
   // 레이아웃 확정 후 서울 전체에 맞춤 (컨테이너 크기 0 문제 방지)
   requestAnimationFrame(() => {
     map.invalidateSize();
     map.fitBounds(geoLayer.getBounds(), { padding: [8, 8] });
+    renderGuLabels();
     renderTags();
   });
-  map.on('zoomend', renderTags); // 전체 재배치는 진입·줌 변경 시에만 (§9-3)
+  map.on('zoomend', () => { renderGuLabels(); renderTags(); }); // 전체 재배치는 진입·줌 변경 시에만 (§9-3)
   window.__vibemapMap = map; // 프로토타입 디버그용 (출시 전 제거)
 }
 
@@ -70,6 +73,28 @@ export function renderDistricts() {
       layer.on('dblclick', () => clearTimeout(clickTimer));
     },
   }).addTo(map);
+}
+
+// 구 이름 + 레벨 반투명 오버레이 (확대 시 길 잃음 방지)
+// 전체 뷰에선 태그 라벨과 겹쳐 소음이라 줌인 시에만 표시
+export function renderGuLabels() {
+  guLabelGroup.clearLayers();
+  const near = map.getZoom() >= CONFIG.MAP_NEAR_ZOOM;
+  if (!near) return;
+  getState().districts.forEach((d) => {
+    guLabelGroup.addLayer(
+      L.marker(d.centroid, {
+        interactive: false,
+        keyboard: false,
+        icon: L.divIcon({
+          html: `<span class="gu-label ${near ? 'near' : ''}">${d.name} Lv.${d.level}</span>`,
+          className: 'gu-label-wrap',
+          iconSize: null,
+        }),
+        zIndexOffset: -1000, // 태그 라벨 아래
+      })
+    );
+  });
 }
 
 // 태그 라벨 HTML: [최다 리액션 아이콘 + 총합] + 텍스트 1줄 (크기별 글자수 제한)
@@ -178,6 +203,7 @@ export function updateSingleTag(tagId) {
 
 export function refreshMap() {
   renderDistricts();
+  renderGuLabels();
   renderTags();
 }
 

@@ -14,6 +14,22 @@
 .hint { font-size: 12px; color: #888; }
 .empty { color: #999; font-size: 13px; text-align: center; padding: 24px 0; }
 
+/* ── 구 이름·레벨 반투명 오버레이 ── */
+.gu-label-wrap { pointer-events: none !important; background: none; border: none; }
+.gu-label {
+  display: inline-block;
+  transform: translate(-50%, -170%); /* 구 중심 태그 라벨과 겹치지 않게 위로 */
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(70, 70, 70, 0.45);
+  letter-spacing: 0.02em;
+}
+.gu-label.near {
+  font-size: 15px;
+  color: rgba(60, 60, 60, 0.38);
+}
+
 /* ── 지도 태그 (자리싸움 §9-3: 크기 3단계, 1줄 제한) ── */
 /* 래퍼는 클릭 통과(투명 히트박스가 빈 지도를 덮는 문제 방지), 보이는 말풍선만 탭 대상 */
 .tag-marker-wrap { background: none; border: none; pointer-events: none !important; }
