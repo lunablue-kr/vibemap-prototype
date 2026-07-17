@@ -1,27 +1,28 @@
 // 모더레이션 1차 자동 필터 (설계서 §7)
-// 금칙어·부정어 사전은 초안 미확정(설계서 §13) — 아래는 프로토타입용 최소 초안.
+// 사전은 /data/moderation-dictionary.json (v0.1) — 코드 배포 없이 갱신 가능.
+// block = 등록 거부 (어떤 단어인지 특정하지 않음 — 우회 학습 방지)
+// hold = 등록 허용 + 노출 보류 + 관리자 대기열 (오탐 허용, 안전 우선)
 
 import { getState, save, applyReportState } from './store.js';
 import { CONFIG } from './config.js';
 
-// 금칙어: 욕설·혐오 + 연락처/URL 패턴 → 차단
-const BANNED_WORDS = ['시발', '씨발', '병신', '새끼', '좆'];
-const CONTACT_PATTERNS = [
-  /https?:\/\//i,
-  /www\./i,
-  /\d{2,3}-\d{3,4}-\d{4}/, // 전화번호
-  /[\w.-]+@[\w-]+\.\w{2,}/, // 이메일
-  /카톡|카카오톡\s*아이디|오픈채팅|텔레그램|인스타\s*@/,
-];
-// 정치 관련 → 금칙어 사전 등재 (설계서 §7 판단기준 5)
-const POLITICS_WORDS = ['민주당', '국민의힘', '보수 성향', '진보 성향', '좌파', '우파', '대통령'];
+let DICT = { block: [], hold: [], patterns: [] };
 
-// 부정어: 차단이 아닌 노출 보류 + 관리자 대기열 (오탐 허용, 안전 우선)
-// 치안·집값 서열화(설계서 §7 판단기준 4)는 무조건 삭제 대상이라 보류 대기열로 우선 격리
-const NEGATIVE_WORDS = [
-  '맛없', '최악', '별로', '불친절', '비추', '더럽', '바가지', '위생', '사기', '무례',
-  '우범', '치안', '집값', '슬럼', '위험한 동네',
-];
+// 매칭 전 정규화 (사전 _meta 규칙): 전각→반각(NFKC), 공백·특수문자 제거.
+// NFKC가 호환 자모(ㅅㅂ)를 조합형 자모로 바꾸므로 조합형 범위(ᄀ-ᇿ)도 보존하고,
+// 사전 항목과 입력 텍스트에 같은 정규화를 적용해 일치를 보장한다.
+function normalize(text) {
+  return text.normalize('NFKC').replace(/[^0-9a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣᄀ-ᇿ]/g, '');
+}
+
+export async function loadDictionary() {
+  const d = await fetch('./data/moderation-dictionary.json').then((r) => r.json());
+  DICT = {
+    block: Object.values(d.block).flat().map(normalize),
+    hold: Object.values(d.hold).flat().map(normalize),
+    patterns: Object.values(d.patterns).map((p) => new RegExp(p, 'i')),
+  };
+}
 
 // 반환: { ok, blocked?, held?, message? }
 export function checkText(text) {
@@ -30,13 +31,14 @@ export function checkText(text) {
   if (t.length > CONFIG.TAG_MAX_LENGTH) {
     return { ok: false, message: `태그는 ${CONFIG.TAG_MAX_LENGTH}자까지 쓸 수 있어요.` };
   }
-  if (BANNED_WORDS.some((w) => t.includes(w)) || POLITICS_WORDS.some((w) => t.includes(w))) {
-    return { ok: false, blocked: true, message: '등록할 수 없는 표현이 포함되어 있어요.' };
+  if (DICT.patterns.some((p) => p.test(t))) {
+    return { ok: false, blocked: true, message: '연락처나 외부 링크는 남길 수 없어요.' };
   }
-  if (CONTACT_PATTERNS.some((p) => p.test(t))) {
-    return { ok: false, blocked: true, message: '연락처나 링크는 남길 수 없어요.' };
+  const n = normalize(t);
+  if (DICT.block.some((w) => n.includes(w))) {
+    return { ok: false, blocked: true, message: '커뮤니티 규칙에 맞지 않는 표현이 있어요.' };
   }
-  if (NEGATIVE_WORDS.some((w) => t.includes(w))) {
+  if (DICT.hold.some((w) => n.includes(w))) {
     return { ok: true, held: true }; // 노출 보류 → 관리자 검토 대기열
   }
   return { ok: true };

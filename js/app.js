@@ -4,6 +4,7 @@ import { initStore, getState, getDistrict } from './store.js';
 import { initMap, refreshMap, invalidateMapSize, panToDistrict } from './map.js';
 import { createTag, canWriteIn } from './tags.js';
 import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
+import { loadDictionary } from './moderation.js';
 import { toast, showScreen } from './ui.js';
 import { initDistrictScreen, openDistrict, refreshDistrict } from './screens/district.js';
 import { renderRankingScreen } from './screens/ranking.js';
@@ -13,7 +14,7 @@ let pendingWrite = null; // { guId, lat, lng }
 
 async function main() {
   try {
-    await initStore();
+    await Promise.all([initStore(), loadDictionary()]);
   } catch (e) {
     console.error('데이터 로드 실패', e);
     toast('데이터를 불러오지 못했어요. 새로고침으로 다시 시도해주세요.');
