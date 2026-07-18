@@ -2,7 +2,7 @@
 import { CONFIG } from './config.js';
 import { initStore, getState, getDistrict, resetAll, snapIntoDistrict } from './store.js';
 import { loadDictionary } from './moderation.js';
-import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize } from './map.js';
+import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize, gentlePanTo, tagLatLng } from './map.js';
 import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
 import { toast, openSheet, closeSheets, anySheetOpen, initSheetDrag } from './ui.js';
 import { initPopup, openPopup, closePopup, isPopupOpen } from './popup.js';
@@ -28,8 +28,14 @@ async function main() {
   }
 
   initMap({
-    // 태그 탭은 오버레이 열림 여부와 무관하게 동작 (팝업 전환 — 연속 탐색)
-    onTagClick: (tagId) => { closeComposer(); openPopup(tagId); },
+    // 태그 탭: 태그를 화면 중앙으로 살짝 팬(구글맵 관례) 후 카드 (팝업 전환 — 연속 탐색)
+    onTagClick: (tagId) => {
+      closeComposer();
+      closePopup();
+      const ll = tagLatLng(tagId);
+      if (ll) gentlePanTo(ll, () => openPopup(tagId));
+      else openPopup(tagId);
+    },
     // 빈 곳 탭: 오버레이(팝업·작성창)가 떠 있으면 "닫기만" — 밑의 액션 실행 안 함
     onEmptyTap: (guId, lat, lng) => {
       // 오버레이를 닫은 그 탭의 지연 콜백이면 소비하고 끝 (닫기만, 액션 없음)

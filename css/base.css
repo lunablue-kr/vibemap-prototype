@@ -45,6 +45,16 @@ body {
 /* 베이스 타일 없음: 단색 배경 (§9-2). 색상 값은 디자인 이월 — 임시 회백색 */
 #map { height: 100%; background: #f3f3f1; }
 
+#data-credit {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.35);
+  z-index: 900;
+  pointer-events: none;
+}
+
 #toast {
   position: fixed;
   bottom: 24px;

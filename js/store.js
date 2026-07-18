@@ -31,10 +31,12 @@ export function resetAll() {
 }
 
 // GeoJSON + 시드 데이터 로드 후 저장된 유저 상태 병합
+// demo-tags.json = 프로토타입 시연 전용 (리액션 과장 프리셋).
+// 본개발 전환 시 출시 규격인 seed-tags.json으로 교체할 것 (각 파일 _meta 참조)
 export async function initStore() {
   const [geo, seed] = await Promise.all([
     fetch('./data/seoul-25gu.geojson').then((r) => r.json()),
-    fetch('./data/seed-tags.json').then((r) => r.json()),
+    fetch('./data/demo-tags.json').then((r) => r.json()),
   ]);
 
   state.geojson = geo;

@@ -1,13 +1,7 @@
 {
  "_meta": {
-  "purpose": "출시용 운영자 시드 (설계서 §13 확정 규칙 준수)",
-  "rules": [
-   "구당 3~5개 태그 (사실 기반 / 긍정·중립 톤 / 상호명 금지)",
-   "리액션 인위 부풀리기 금지 — 일부 태그에만 2~3개 (승격 임계값 충족용)만 허용",
-   "현장(onsite) 표시 임의 부여 금지 — 시드 리액션은 현장 아님으로 취급",
-   "운영자 표시 없음 (설계서 §13)"
-  ],
-  "note": "프로토타입은 demo-tags.json을 로드함. 본개발 전환 시 이 파일 사용"
+  "purpose": "프로토타입 시연 전용 (DEMO). 출시 시드로 사용 금지",
+  "note": "리액션 수치가 자리싸움·랭킹·부문 시연을 위해 과장되어 있음 — 설계서 §13 출시 시드 규칙(일부 태그만 2~3개, 부풀리기 금지) 초과. 출시용은 seed-tags.json 참조"
  },
  "districts": {
   "강남구": {
@@ -270,7 +264,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "hug": 13,
+    "like": 5
    }
   },
   {
@@ -280,7 +275,10 @@
    "text": "점심시간 직장인 파도 조심",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "funny": 10,
+    "like": 4
+   }
   },
   {
    "gu": "강남구",
@@ -289,7 +287,9 @@
    "text": "테헤란로 이직 소문의 성지",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "funny": 2
+   }
   },
   {
    "gu": "강동구",
@@ -299,7 +299,8 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "like": 8,
+    "hip": 2
    }
   },
   {
@@ -309,7 +310,10 @@
    "text": "암사동 골목 빵집 줄서는 중",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "like": 4,
+    "hip": 1
+   }
   },
   {
    "gu": "강동구",
@@ -318,7 +322,9 @@
    "text": "주말 아침 둔치 러너 천국",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "강북구",
@@ -328,7 +334,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "like": 11,
+    "hip": 6
    }
   },
   {
@@ -338,7 +345,10 @@
    "text": "수유리 순대국 골목 건재",
    "resident": true,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "like": 5,
+    "hug": 2
+   }
   },
   {
    "gu": "강북구",
@@ -347,7 +357,9 @@
    "text": "북한산 뷰 버스정류장",
    "resident": false,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 1
+   }
   },
   {
    "gu": "강서구",
@@ -357,6 +369,7 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
+    "funny": 7,
     "like": 3
    }
   },
@@ -367,7 +380,10 @@
    "text": "김포공항 비행기 소리도 정겨움",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "hug": 4,
+    "like": 2
+   }
   },
   {
    "gu": "강서구",
@@ -376,7 +392,9 @@
    "text": "발산역 야장 시즌 개막",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "hip": 2
+   }
   },
   {
    "gu": "관악구",
@@ -386,7 +404,8 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "hug": 15,
+    "like": 6
    }
   },
   {
@@ -396,7 +415,10 @@
    "text": "샤로수길 웨이팅 생겼다",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "hip": 8,
+    "like": 3
+   }
   },
   {
    "gu": "관악구",
@@ -405,7 +427,9 @@
    "text": "신림 순대타운은 영원하다",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "광진구",
@@ -415,7 +439,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "hip": 9,
+    "funny": 4
    }
   },
   {
@@ -425,7 +450,10 @@
    "text": "뚝섬유원지 돗자리 만석",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "like": 6,
+    "hip": 2
+   }
   },
   {
    "gu": "광진구",
@@ -434,7 +462,9 @@
    "text": "군자역 골목 노포 발견",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 1
+   }
   },
   {
    "gu": "구로구",
@@ -444,6 +474,7 @@
    "resident": true,
    "daysAgo": 2,
    "reactions": {
+    "hug": 6,
     "like": 3
    }
   },
@@ -454,7 +485,10 @@
    "text": "구로디지털단지 새벽 불빛",
    "resident": true,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "hug": 9,
+    "like": 2
+   }
   },
   {
    "gu": "구로구",
@@ -463,7 +497,9 @@
    "text": "고척돔 야구 끝나면 축제",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "funny": 2
+   }
   },
   {
    "gu": "금천구",
@@ -473,7 +509,8 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "like": 5,
+    "hip": 1
    }
   },
   {
@@ -483,7 +520,10 @@
    "text": "독산동 우시장 회식 성지",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "like": 3,
+    "funny": 2
+   }
   },
   {
    "gu": "금천구",
@@ -492,7 +532,9 @@
    "text": "안양천 벚꽃길 산책 코스",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "노원구",
@@ -502,7 +544,8 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "like": 9,
+    "funny": 3
    }
   },
   {
@@ -512,7 +555,10 @@
    "text": "불암산 둘레길 단풍 시작",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 4,
+    "hug": 1
+   }
   },
   {
    "gu": "노원구",
@@ -521,7 +567,9 @@
    "text": "공릉동 철길 카페 거리 발견",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "hip": 2
+   }
   },
   {
    "gu": "도봉구",
@@ -531,7 +579,8 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "like": 6,
+    "hug": 2
    }
   },
   {
@@ -541,7 +590,10 @@
    "text": "창동 레코드 가게 아직 있다",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "hip": 4,
+    "like": 1
+   }
   },
   {
    "gu": "도봉구",
@@ -550,7 +602,9 @@
    "text": "방학동 은행나무 노랗다",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "동대문구",
@@ -560,7 +614,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "like": 7,
+    "hug": 3
    }
   },
   {
@@ -570,7 +625,10 @@
    "text": "회기 파전골목 비 오면 만석",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "funny": 5,
+    "like": 2
+   }
   },
   {
    "gu": "동대문구",
@@ -579,7 +637,9 @@
    "text": "청량리 청과물 냄새가 반겨줌",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 1
+   }
   },
   {
    "gu": "동작구",
@@ -589,7 +649,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "hug": 10,
+    "like": 4
    }
   },
   {
@@ -599,7 +660,10 @@
    "text": "사당역 환승 인파 파도타기",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "funny": 6,
+    "like": 2
+   }
   },
   {
    "gu": "동작구",
@@ -608,7 +672,9 @@
    "text": "보라매공원 야경 산책",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "마포구",
@@ -618,7 +684,9 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "like": 12,
+    "funny": 8,
+    "hip": 5
    }
   },
   {
@@ -628,7 +696,10 @@
    "text": "연남동 골목 브런치 전쟁",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "hip": 9,
+    "like": 3
+   }
   },
   {
    "gu": "마포구",
@@ -637,7 +708,9 @@
    "text": "망원시장 고로케 줄 실화",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "서대문구",
@@ -647,7 +720,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "like": 6,
+    "hip": 3
    }
   },
   {
@@ -657,7 +731,10 @@
    "text": "안산 자락길 메타세쿼이아",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 4,
+    "hug": 1
+   }
   },
   {
    "gu": "서대문구",
@@ -666,7 +743,9 @@
    "text": "연희동 조용한 골목 산책",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "hip": 2
+   }
   },
   {
    "gu": "서초구",
@@ -676,6 +755,7 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
+    "hip": 7,
     "like": 3
    }
   },
@@ -686,7 +766,10 @@
    "text": "강남역 회식 2차는 서초로",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "funny": 4,
+    "like": 2
+   }
   },
   {
    "gu": "서초구",
@@ -695,7 +778,9 @@
    "text": "반포 한강 불꽃 명당",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "성동구",
@@ -705,7 +790,9 @@
    "resident": false,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "like": 14,
+    "funny": 6,
+    "hip": 11
    }
   },
   {
@@ -715,7 +802,10 @@
    "text": "공장 개조 카페의 성지",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "hip": 9,
+    "like": 4
+   }
   },
   {
    "gu": "성동구",
@@ -724,7 +814,9 @@
    "text": "서울숲 피크닉 자리 경쟁 치열",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "성북구",
@@ -734,6 +826,7 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
+    "hip": 5,
     "like": 3
    }
   },
@@ -744,7 +837,10 @@
    "text": "정릉 골목 손칼국수 인생집",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 4,
+    "hug": 2
+   }
   },
   {
    "gu": "성북구",
@@ -753,7 +849,9 @@
    "text": "성신여대 앞 붕어빵 시즌",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "송파구",
@@ -763,7 +861,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "like": 10,
+    "hip": 4
    }
   },
   {
@@ -773,7 +872,10 @@
    "text": "잠실 야구장 함성 여기까지",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "funny": 7,
+    "like": 3
+   }
   },
   {
    "gu": "송파구",
@@ -782,7 +884,9 @@
    "text": "방이동 먹자골목 회식 러시",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 1
+   }
   },
   {
    "gu": "양천구",
@@ -792,7 +896,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "funny": 6,
+    "hug": 3
    }
   },
   {
@@ -802,7 +907,10 @@
    "text": "파리공원 단풍 포토존",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 4,
+    "hip": 1
+   }
   },
   {
    "gu": "양천구",
@@ -811,7 +919,9 @@
    "text": "오목교 맛집 골목 재발견",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "영등포구",
@@ -821,7 +931,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "hug": 12,
+    "funny": 5
    }
   },
   {
@@ -831,7 +942,10 @@
    "text": "문래 철공소 골목 예술로 변신",
    "resident": false,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "hip": 8,
+    "like": 3
+   }
   },
   {
    "gu": "영등포구",
@@ -840,7 +954,9 @@
    "text": "타임스퀘어 주말 인파 장난 없음",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "용산구",
@@ -850,7 +966,8 @@
    "resident": false,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "hip": 13,
+    "like": 4
    }
   },
   {
@@ -860,7 +977,10 @@
    "text": "이태원 세계음식 골목 부활",
    "resident": true,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "like": 6,
+    "hip": 3
+   }
   },
   {
    "gu": "용산구",
@@ -869,7 +989,9 @@
    "text": "남산 밑 조용한 해방촌 아침",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "은평구",
@@ -879,7 +1001,8 @@
    "resident": true,
    "daysAgo": 2,
    "reactions": {
-    "like": 3
+    "like": 7,
+    "hug": 2
    }
   },
   {
@@ -889,7 +1012,10 @@
    "text": "연신내 로데오 세대교체 중",
    "resident": true,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "hip": 4,
+    "like": 2
+   }
   },
   {
    "gu": "은평구",
@@ -898,7 +1024,9 @@
    "text": "불광천 벚꽃 산책로 개화",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "종로구",
@@ -908,7 +1036,8 @@
    "resident": true,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "like": 8,
+    "hug": 3
    }
   },
   {
@@ -918,7 +1047,10 @@
    "text": "익선동 한옥 골목 반나절 순삭",
    "resident": false,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "hip": 10,
+    "like": 3
+   }
   },
   {
    "gu": "종로구",
@@ -927,7 +1059,9 @@
    "text": "광장시장 빈대떡 냄새에 항복",
    "resident": false,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "funny": 2
+   }
   },
   {
    "gu": "중구",
@@ -937,7 +1071,8 @@
    "resident": false,
    "daysAgo": 1,
    "reactions": {
-    "like": 3
+    "like": 9,
+    "hip": 6
    }
   },
   {
@@ -947,7 +1082,10 @@
    "text": "남대문시장 갈치조림 골목 만석",
    "resident": true,
    "daysAgo": 0,
-   "reactions": {}
+   "reactions": {
+    "like": 5,
+    "hug": 2
+   }
   },
   {
    "gu": "중구",
@@ -956,7 +1094,9 @@
    "text": "정동길 가을 은행나무 절정",
    "resident": true,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 2
+   }
   },
   {
    "gu": "중랑구",
@@ -966,7 +1106,8 @@
    "resident": true,
    "daysAgo": 0,
    "reactions": {
-    "like": 3
+    "like": 6,
+    "hug": 2
    }
   },
   {
@@ -976,7 +1117,10 @@
    "text": "면목동 시장 어묵 국물 무료",
    "resident": true,
    "daysAgo": 1,
-   "reactions": {}
+   "reactions": {
+    "funny": 4,
+    "like": 2
+   }
   },
   {
    "gu": "중랑구",
@@ -985,7 +1129,9 @@
    "text": "용마산 폭포공원 시원함",
    "resident": false,
    "daysAgo": 2,
-   "reactions": {}
+   "reactions": {
+    "like": 1
+   }
   }
  ]
 }

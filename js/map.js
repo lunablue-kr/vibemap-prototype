@@ -13,6 +13,7 @@ let map = null;
 let geoLayer = null;
 let tagLayerGroup = null;
 let guLabelGroup = null;
+let programmaticMove = false; // 앱 주도 이동 중 (오버레이 자동 닫힘 예외)
 let markersByTagId = {};
 let handlers = {}; // { onTagClick(tagId), onEmptyTap(guId, lat, lng) }
 
@@ -59,7 +60,10 @@ export function initMap(h) {
     relayoutTimer = setTimeout(renderTags, 120);
   });
   // 지도 조작(팬·줌) 시작 = 오버레이 자연스럽게 닫힘 (B안)
-  map.on('movestart zoomstart', () => handlers.onMapMoveStart?.());
+  // 단, 앱이 스스로 움직이는 경우(센터링 팬 등)는 예외
+  map.on('movestart zoomstart', () => {
+    if (!programmaticMove) handlers.onMapMoveStart?.();
+  });
   map.on('click', (e) => handlers.onBareMapTap?.(e)); // 오버레이 닫기 규칙용 (폴리곤·마커 탭에서도 발생)
   window.__vibemapMap = map; // 프로토타입 디버그용 (출시 전 제거)
 }
@@ -166,9 +170,19 @@ export function renderTags() {
   //    k위가 자리를 못 잡으면 그 구의 k+1위 이하도 그 줌에서는 노출하지 않는다.
   // 2. 줌이 깊어질수록 구당 상한(cap)이 늘어 2위, 3위…가 순서대로 추가된다.
   // 3. 배치 우선권은 전역 리액션 합산순 (동률이면 구 내 순위 우선).
+  // 4. [예외] 고정석(주간 1위, §9-3)은 cap·prefix와 무관하게 항상 표시.
+  //    누적 순위와 주간 순위가 벌어져도 "이번 주 1위 = 구 중심"은 불변.
   // 지역 추가·실시간 순위 변동에도 이 규칙이 유지되어야 함.
   const shown = Object.entries(byGu)
-    .flatMap(([guId, list]) => list.slice(0, cap))
+    .flatMap(([guId, list]) => {
+      const slice = list.slice(0, cap);
+      const topId = topByGu[guId];
+      if (topId && !slice.some((t) => t.id === topId)) {
+        const seat = list.find((t) => t.id === topId);
+        if (seat) slice.push(seat); // 고정석 예외 (규칙 4)
+      }
+      return slice;
+    })
     .sort((a, b) => b.counts.total - a.counts.total || a.guRank - b.guRank);
 
   const placedBoxes = []; // 절대 투영 좌표 기준 충돌 회피 (플립·킵아웃은 화면 기준 → moveend마다 재배치)
@@ -194,13 +208,14 @@ export function renderTags() {
   };
 
   shown.forEach((t) => {
-    if (blockedGu.has(t.guId)) {
+    const isSeat = topByGu[t.guId] === t.id; // 고정석: blockedGu·생략 규칙의 예외
+    if (blockedGu.has(t.guId) && !isSeat) {
       window.__labelDrops?.push({ id: t.id, gu: t.guId, rank: t.guRank, reason: 'blocked-prefix' });
       return;
     }
     const d = s.districts.find((x) => x.guId === t.guId);
     // 앵커 = 항상 실제 좌표. 고정석(§9-3: 주간 1위 = 구 중심)만 예외 — 줌 경계 점프 방지
-    const useCentroid = d && topByGu[t.guId] === t.id;
+    const useCentroid = d && isSeat;
     const anchor = useCentroid ? d.centroid : [t.lat, t.lng];
     const pp = map.project(anchor, zoom); // 줌에만 의존하는 절대 픽셀 좌표
 
@@ -232,8 +247,8 @@ export function renderTags() {
     }
     if (!placement) {
       // 최대 줌 부근: 생략 금지 — 자리 없으면 작은 크기·겹침 허용으로라도 표시
-      // (요구사항: 최대 줌인 시 노출 가능한 최대치 전부. 핀이 제자리라 겹쳐도 지점은 명확)
-      if (zoom >= map.getMaxZoom() - 0.5) {
+      // 고정석도 동일 (규칙 4: 항상 표시)
+      if (zoom >= map.getMaxZoom() - 0.5 || isSeat) {
         const tier = 'small';
         const box = labelBox(t, tier);
         const { tx, bx } = placeBoxX(pp, box);
@@ -294,6 +309,34 @@ export function refreshMap() {
 
 export function invalidateMapSize() {
   map?.invalidateSize();
+}
+
+// 센터링 팬 (구글맵 관례): 탭한 태그를 화면 중앙으로 부드럽게 이동.
+// 이동 완료 후 콜백 (팝업을 안정된 뷰에서 열기 위함)
+export function gentlePanTo(latlng, onDone) {
+  // 이미 중앙 근처면 이동 생략 (panTo가 no-op이면 moveend가 안 와서 콜백이 유실됨)
+  const p = map.latLngToContainerPoint(latlng);
+  const c = map.getSize().divideBy(2);
+  if (Math.hypot(p.x - c.x, p.y - c.y) < 24) {
+    onDone?.();
+    return;
+  }
+  programmaticMove = true;
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    programmaticMove = false;
+    onDone?.();
+  };
+  map.once('moveend', finish);
+  // maxBounds 클램프로 이동이 0이면 moveend가 안 옴 — 콜백 유실 방지 타이머
+  setTimeout(finish, 700);
+  map.panTo(latlng, { animate: true, duration: 0.3 });
+}
+
+export function tagLatLng(tagId) {
+  return markersByTagId[tagId]?.marker.getLatLng() || null;
 }
 
 export function panToDistrict(guId) {

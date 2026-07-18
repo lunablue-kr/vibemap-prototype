@@ -73,9 +73,12 @@ cd prototype && python3 -m http.server 8899
 - 지도 태그 라벨 터치 높이 ~20px (44px 미달) — 디자인 단계에서 말풍선 패딩과 함께 해결
 - 유저 노출 카피 전반 copywriter 경유 필요 ("광고 보고 글쓰기 3회 충전 (목)" 등 플레이스홀더 잔존)
 
+**출시 전 처리**:
+- 공개 저장소 커밋 author 이메일을 GitHub noreply로 이력 재작성 (현재 개인 이메일 노출 — 사용자 결정: 출시 전 진행)
+- 시드 파일 교체: demo-tags.json(시연용) → seed-tags.json(출시 규격, §13 준수) 로드로 전환 (store.js 주석 참조)
+- 위치 시뮬레이션 바·window.__vibemapMap·__vibemapReset·__labelDrops 제거
+
 **기능·UX**:
-- 고정석(주간 1위=구 중심)과 지도 노출 순위(전체 누적 기준)의 기준 불일치 — 수 주 누적 시
-  이번 주 1위가 노출 상한 밖으로 밀려 고정석이 안 보일 수 있음. 순위 기준 통일 또는 고정석 강제 포함 필요
 - 신고 사유 UI가 브라우저 prompt() — TDS 시트로 교체
 - 태그 수백 개 규모 대비: 리액션 인덱스(Map), 마커 diff 렌더, 클러스터링 검토
 - 구 상세 빈 화면 독려 문구 (copywriter 경유), 불씨 목록 가독성
@@ -99,6 +102,7 @@ prototype/
        map.js           Leaflet 지도·폴리곤·태그 마커
        ui.js            토스트·화면 전환
        screens/         district.js ranking.js my.js
-  data/ seoul-25gu.geojson (southkorea/seoul-maps, 통계청 2013 경계)
-        seed-tags.json     시드 태그·구 레벨
+  data/ seoul-25gu.geojson  구 경계 (출처: 통계청 SGIS 2013, southkorea/seoul-maps 가공 — 지도에 출처 표기됨)
+        demo-tags.json      프로토타입 시연 전용 (리액션 과장 프리셋 — 출시 시드로 사용 금지, _meta 참조)
+        seed-tags.json      출시용 운영자 시드 (설계서 §13 규격: 구당 3~5개·리액션 최소·현장 미부여)
 ```

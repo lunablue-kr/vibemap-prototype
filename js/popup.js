@@ -53,7 +53,8 @@ function positionNearTag(el, tagId) {
 
 export function closePopup() {
   document.getElementById('tag-popup').hidden = true;
-  document.getElementById('popup-report-menu').hidden = true;
+  const menu = document.getElementById('popup-report-menu'); // 팝업 첫 렌더 전엔 없음
+  if (menu) menu.hidden = true;
   currentTagId = null;
 }
 
