@@ -4,7 +4,7 @@ import { initStore, getState, getDistrict, resetAll, snapIntoDistrict } from './
 import { loadDictionary } from './moderation.js';
 import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize } from './map.js';
 import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
-import { toast, openSheet, closeSheets, initSheetDrag } from './ui.js';
+import { toast, openSheet, closeSheets, anySheetOpen, initSheetDrag } from './ui.js';
 import { initPopup, openPopup, closePopup, isPopupOpen } from './popup.js';
 import { initComposer, openComposer, closeComposer, isComposerOpen } from './composer.js';
 import { initChip, renderChip } from './chips.js';
@@ -85,13 +85,18 @@ async function main() {
     closeSheets();
     panToDistrict(row.dataset.gu);
   });
-  // 뒤로가기(안드로이드 백 제스처)로 열린 시트·카드 닫기
-  document.addEventListener('overlayopened', () => {
-    if (!history.state?.overlay) history.pushState({ overlay: 1 }, '');
-  });
+  // 뒤로가기(백 제스처) 대응 — 센티널 트랩 패턴:
+  // 로드 시 엔트리 1개를 깔아두고, back이 오면 열린 오버레이만 닫고 트랩을 복구.
+  // 아무것도 안 열려 있으면 진짜 뒤로(앱 이탈). UI로 닫는 경로는 히스토리를 안 건드려 레이스 없음.
+  history.pushState({ trap: 1 }, '');
   window.addEventListener('popstate', () => {
-    dismissOverlays(false);
-    closeSheets();
+    if (isPopupOpen() || isComposerOpen() || anySheetOpen()) {
+      dismissOverlays(false);
+      closeSheets();
+      history.pushState({ trap: 1 }, '');
+    } else {
+      history.back();
+    }
   });
 
   initSheetDrag();

@@ -15,12 +15,6 @@ export function openSheet(name) {
     document.getElementById('sheet-' + s).classList.toggle('open', s === name);
   });
   document.getElementById('sheet-dim').hidden = false;
-  notifyOverlayOpened();
-}
-
-// 뒤로가기로 닫기 위해 오버레이 열림을 알림 (히스토리 처리는 app.js)
-export function notifyOverlayOpened() {
-  document.dispatchEvent(new CustomEvent('overlayopened'));
 }
 
 // 시트 스와이프 다운 닫기 (그랩바·타이틀 영역에서 아래로 90px 이상 끌면 닫힘)
@@ -51,25 +45,16 @@ export function initSheetDrag() {
 }
 
 export function closeSheets() {
-  const wasOpen = SHEETS.some((s) => document.getElementById('sheet-' + s).classList.contains('open'));
   SHEETS.forEach((s) => document.getElementById('sheet-' + s).classList.remove('open'));
   document.getElementById('sheet-dim').hidden = true;
-  if (wasOpen) consumeOverlayHistory();
 }
 
-// 오버레이가 back 이외의 방법으로 닫힐 때, 열림 시 쌓은 히스토리 엔트리를 소모
-// (안 하면 시스템 백 버튼이 유령 엔트리만 소모해 "한 번 더 눌러야 나가지는" 버그)
-// back()은 비동기라 중복 호출 방지 플래그 필요. popstate로 닫히는 경우엔
-// history.state가 이미 null이라 guard에 걸려 아무것도 안 함.
-let backPending = false;
-window.addEventListener('popstate', () => { backPending = false; });
-export function consumeOverlayHistory() {
-  if (backPending) return;
-  if (history.state?.overlay) {
-    backPending = true;
-    history.back();
-  }
+export function anySheetOpen() {
+  return SHEETS.some((s) => document.getElementById('sheet-' + s).classList.contains('open'));
 }
+
+// (히스토리 처리) 오버레이 열림/닫힘은 히스토리를 건드리지 않는다.
+// 뒤로가기 대응은 app.js의 센티널 트랩이 담당 — UI 열고 닫기와 레이스 없음.
 
 export function escapeHtml(str) {
   const div = document.createElement('div');

@@ -6,7 +6,7 @@ import { addReaction, myReaction, reactionCounts } from './reactions.js';
 import { reportTag, REPORT_REASONS } from './moderation.js';
 import { getTossKey } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
-import { toast, escapeHtml, viewportBox, notifyOverlayOpened, consumeOverlayHistory } from './ui.js';
+import { toast, escapeHtml, viewportBox } from './ui.js';
 
 let currentTagId = null;
 let onChange = null; // 리액션·신고 후 (지도 단일 갱신 등)
@@ -29,7 +29,6 @@ export function openPopup(tagId) {
   const el = document.getElementById('tag-popup');
   el.hidden = false;
   positionNearTag(el, tagId);
-  notifyOverlayOpened();
 }
 
 // 카드를 탭한 라벨 옆에 배치 — 실제 보이는 영역(visualViewport) 안으로 클램프
@@ -53,12 +52,9 @@ function positionNearTag(el, tagId) {
 }
 
 export function closePopup() {
-  const el = document.getElementById('tag-popup');
-  const wasOpen = !el.hidden;
-  el.hidden = true;
+  document.getElementById('tag-popup').hidden = true;
   document.getElementById('popup-report-menu').hidden = true;
   currentTagId = null;
-  if (wasOpen) consumeOverlayHistory();
 }
 
 function render() {

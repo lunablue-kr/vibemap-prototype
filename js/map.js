@@ -178,10 +178,16 @@ export function renderTags() {
   const vb = map.getPixelBounds();
   const TOP_KEEPOUT = 80; // 개발 바 + 플로팅 칩·아이콘 영역
 
+  // 핀이 화면(여유 30px) 안에 있는지 — 화면 밖 태그는 클램프·킵아웃 대상이 아님
+  // (적용하면 먼 구의 박스가 화면 가장자리로 끌려 들어오는 "따라오기" 현상 발생)
+  const pinInView = (pp) =>
+    pp.x > vb.min.x - 30 && pp.x < vb.max.x + 30 && pp.y > vb.min.y - 30 && pp.y < vb.max.y + 30;
+
   // 박스 X 배치: 기본 핀 오른쪽. 화면 오른쪽을 넘으면 왼쪽으로 플립,
-  // 그래도 안 되면 화면 안으로 슬라이드 (박스는 항상 화면 안에서 온전히 보임)
+  // 그래도 안 되면 화면 안으로 슬라이드 (핀이 보이는 태그만 — 박스는 항상 화면 안에 온전히)
   const placeBoxX = (pp, box) => {
     let left = pp.x + 9;
+    if (!pinInView(pp)) return { tx: 9, bx: left + box.w / 2 };
     if (left + box.w > vb.max.x - 6) left = pp.x - 9 - box.w;
     left = Math.min(Math.max(left, vb.min.x + 6), vb.max.x - 6 - box.w);
     return { tx: left - pp.x, bx: left + box.w / 2 };
@@ -209,8 +215,8 @@ export function renderTags() {
       const h = box.h * 0.9;
       const { tx, bx } = placeBoxX(pp, box);
       const usable = (dy) => {
-        // 상단 킵아웃: 화면 위 고정 UI(개발 바·칩·마이) 밑으로 못 들어가게
-        if (pp.y + dy - box.h / 2 < vb.min.y + TOP_KEEPOUT) return false;
+        // 상단 킵아웃: 화면 위 고정 UI(개발 바·칩·마이) 밑으로 못 들어가게 (화면 안 핀만)
+        if (pinInView(pp) && pp.y + dy - box.h / 2 < vb.min.y + TOP_KEEPOUT) return false;
         const hit = placedBoxes.some(
           (p) => Math.abs(p.x - bx) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
         );
@@ -231,9 +237,9 @@ export function renderTags() {
         const tier = 'small';
         const box = labelBox(t, tier);
         const { tx, bx } = placeBoxX(pp, box);
-        // 상단 킵아웃만은 지킴 (플로팅 UI 밑으로 들어가지 않게 아래로 내림)
+        // 상단 킵아웃만은 지킴 (화면 안 핀만 — 화면 밖 태그를 화면으로 끌어오지 않기)
         const minY = vb.min.y + TOP_KEEPOUT + box.h / 2;
-        const dy = pp.y < minY ? minY - pp.y : 0;
+        const dy = pinInView(pp) && pp.y < minY ? minY - pp.y : 0;
         placement = { tier, box, dy, bx, tx };
       } else {
         blockedGu.add(t.guId); // 이 구는 여기서 끊음 — 하위 순위가 먼저 튀어나오는 것 방지
