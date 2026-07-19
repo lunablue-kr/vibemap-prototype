@@ -59,3 +59,9 @@ export function shareInvite() {
   console.info('[공유 리워드 SDK 목] 친구 초대 공유 시트 → 성공');
   return Promise.resolve({ shared: true });
 }
+
+// 공유하기 SDK 목 (§9-6 바이럴) — 지역 오픈 투표 독려 등 일반 공유. 리워드와 별개.
+export function shareContent(text) {
+  console.info('[공유하기 SDK 목] 공유 시트:', text);
+  return Promise.resolve({ shared: true });
+}
