@@ -7,6 +7,7 @@ import { escapeHtml } from './ui.js';
 
 let idx = 0;
 let timer = null;
+let lastCat = null; // 부문 전환 감지 (전환 순간만 모션 — 리액션 리렌더 깜빡임 방지)
 
 export function initChip(onTap) {
   document.getElementById('rank-chip').addEventListener('click', onTap);
@@ -26,6 +27,10 @@ export function renderChip() {
   const chips = rollingChips();
   if (!chips.length) return;
   const c = chips[idx % chips.length];
-  document.getElementById('rank-chip').innerHTML =
-    `${icon(c.icon, 16)}<span class="chip-gu">${escapeHtml(c.guName)}</span>`;
+  const el = document.getElementById('rank-chip');
+  el.innerHTML = `${icon(c.icon, 16)}<span class="chip-gu">${escapeHtml(c.guName)}</span>`;
+  if (c.categoryId !== lastCat) { // 부문 전환 시에만 페이드
+    el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap');
+    lastCat = c.categoryId;
+  }
 }

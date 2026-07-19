@@ -58,6 +58,7 @@
 /* 태그 말풍선: 화이트 필, radius=높이/2, 핑크 틴트 그림자 (§7) */
 .tag-marker {
   display: inline-block; /* transform은 JS 인라인(핀 기준 좌/우 배치) */
+  position: relative; /* 고정석 왕관 어깨 배지 앵커 */
   white-space: nowrap;
   font-family: var(--font-display);
   color: var(--ink);
@@ -66,6 +67,19 @@
   box-shadow: var(--sh-pill);
   cursor: pointer;
   pointer-events: auto;
+}
+
+/* 고정석(주간 1위) = 왕관 어깨 배지만 (§7). 골드 테두리는 명예의 전당 박제(hofLocked) 전용 + 리액션 비활성(popup) */
+.tag-marker.stamped { box-shadow: 0 0 0 2px var(--gold-deep), var(--sh-pill); }
+.tag-marker .seat-crown {
+  position: absolute; top: -10px; right: -5px; line-height: 0;
+  filter: drop-shadow(0 1px 1px rgba(90, 40, 60, 0.25));
+}
+/* 말줄임 대신 오른쪽 끝 페이드 (brief §10, 수채 결) */
+.tag-marker .fade {
+  -webkit-mask-image: linear-gradient(90deg, #000 62%, transparent);
+  mask-image: linear-gradient(90deg, #000 62%, transparent);
+  padding-right: 4px;
 }
 .tag-marker.small { font-size: 10px; padding: 2px 8px; border-radius: 999px; }
 .tag-marker.mid { font-size: 12px; padding: 3px 9px; border-radius: 999px; }
@@ -110,6 +124,10 @@
   cursor: pointer;
 }
 #rank-chip .chip-gu { color: var(--accent); }
+/* 부문 롤링 전환 — 내용만 페이드(칩 상자는 고정) */
+@keyframes chip-swap { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+#rank-chip.swap > * { animation: chip-swap 0.28s ease-out; }
+@media (prefers-reduced-motion: reduce) { #rank-chip.swap > * { animation: none; } }
 
 /* 마이 아이콘: 홈 구 이니셜 원형 뱃지(--home). 프로필 사진 없음 (§7) */
 #my-icon {

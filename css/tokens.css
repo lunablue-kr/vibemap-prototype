@@ -9,6 +9,7 @@
   --gu-lv3: #F6BDD8;  --gu-edge3: #DC82AC;
   --gu-lv4: #F293C1;  --gu-edge4: #D0619A;
   --gu-lv5: #EC64A4;  --gu-edge5: #B94981;
+  --gu-edge-deep: #8A2E5C; /* Lv6~10 경계 보간 앵커 (edge5보다 더 진한 동일 색조) */
 
   --accent: #D64583;       /* 포인트 · 칩 텍스트 · 로고 "바이브" */
   --gold: #FFDD66;         /* 고정석 · 왕관 · 트로피 · 별 */

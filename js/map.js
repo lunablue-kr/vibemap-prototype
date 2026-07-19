@@ -1,7 +1,7 @@
 // 메인 지도 (설계서 v0.5 §9-2, §9-3)
 // 베이스 타일 없음: 단색 배경 + 구 폴리곤 + 태그. 더블탭은 Leaflet 기본 줌 제스처로 예약.
 // 자리싸움: 크기 단계(§9-3)·줌별 구당 표시 상한·앵커(탭 좌표)·고정석(주간 1위 = 구 중심).
-// 와이어프레임 단계: 색·음영은 회색 임시. design-brief 확정 후 팔레트 적용.
+// 색·음영: design-brief.md v1.0 "캔디 수채" 팔레트 (tokens.css 변수, §4 안료 가장자리).
 import { CONFIG } from './config.js';
 import { getState } from './store.js';
 import { tagsForMap, sizeTier } from './tags.js';
@@ -16,6 +16,7 @@ let tagLayerGroup = null;
 let guLabelGroup = null;
 let programmaticMove = false; // 앱 주도 이동 중 (오버레이 자동 닫힘 예외)
 let markersByTagId = {};
+let topByGuCache = {}; // 구별 주간 1위 태그 id (renderTags에서 계산, updateSingleTag가 재사용)
 let handlers = {}; // { onTagClick(tagId), onEmptyTap(guId, lat, lng) }
 
 // 레벨 → 캔디 수채 팔레트 (design-brief.md §3·§4 "안료 가장자리").
@@ -23,6 +24,7 @@ let handlers = {}; // { onTagClick(tagId), onEmptyTap(guId, lat, lng) }
 // 하드코딩 hex 금지·단일 진실 지점 유지 (Leaflet 스타일은 var()를 못 쓰므로 읽어와 주입).
 let GU_FILL = {};
 let GU_EDGE = {};
+let EDGE_DEEP = ''; // Lv6~10 경계 보간 앵커 (--gu-edge-deep)
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
@@ -31,11 +33,24 @@ function buildPalette() {
     GU_FILL[i] = cssVar(`--gu-lv${i}`);
     GU_EDGE[i] = cssVar(`--gu-edge${i}`);
   }
+  EDGE_DEEP = cssVar('--gu-edge-deep');
 }
-// Lv6~10은 동일 색조 연장 — 보간은 스타일링 잔여. 시드 최대 Lv5라 현재는 클램프
+// #rrggbb 선형 보간
+function hexMix(a, b, t) {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+// Lv1~5 = 토큰 테이블, Lv6~10 = 동일 색조 심화 (채움은 edge5쪽, 경계는 더 진하게 연장)
 function lvIndex(level) { return Math.max(1, Math.min(5, level || 1)); }
-function levelFill(level) { return GU_FILL[lvIndex(level)]; }
-function levelEdge(level) { return GU_EDGE[lvIndex(level)]; }
+function levelFill(level) {
+  if ((level || 1) <= 5) return GU_FILL[lvIndex(level)];
+  return hexMix(GU_FILL[5], GU_EDGE[5], Math.min(1, (level - 5) / 5));
+}
+function levelEdge(level) {
+  if ((level || 1) <= 5) return GU_EDGE[lvIndex(level)];
+  return hexMix(GU_EDGE[5], EDGE_DEEP, Math.min(1, (level - 5) / 5));
+}
 
 export function initMap(h) {
   handlers = h;
@@ -143,19 +158,25 @@ export function renderGuLabels() {
 // offsetY: 충돌 회피 시 박스만 밀리고 핀은 지점에 남음 (어느 지점의 태그인지 항상 명확)
 const PIN_GAP = 9; // 핀 중심 → 박스 간격(px)
 // offsetX: 핀 기준 박스 왼쪽 끝 위치(px). 배치 로직이 화면 안으로 클램프해서 전달
-function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP) {
+function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP, seat = false) {
   const tier = displayTier || t.tier;
   const chars = CONFIG.LABEL_CHARS[tier];
   // 코드포인트 단위 절단 (이모지 포함 텍스트에서 서로게이트 쌍 깨짐 방지)
   const cps = Array.from(t.text);
-  const text = cps.length > chars ? cps.slice(0, chars).join('') + '…' : t.text;
+  const truncated = cps.length > chars;
+  // 말줄임 대신 페이드 (brief §10 권장 — 수채 결과 동질). 폭 계산은 그대로 chars 기준
+  const shown = escapeHtml(truncated ? cps.slice(0, chars).join('') : t.text);
+  const textHtml = truncated ? `<span class="fade">${shown}</span>` : shown;
   const pinId = t.isResident ? PIN_ICON.home : PIN_ICON.away;
   const psz = { small: 15, mid: 18, big: 21 }[tier];
   const csz = { small: 11, mid: 13, big: 15 }[tier];
   const count = t.counts.total > 0 ? `${icon(t.topType.icon, csz)} ${t.counts.total} ` : '';
   const style = `transform: translate(${offsetX}px, calc(-50% + ${offsetY}px));`;
+  // 고정석(주간 1위) = 왕관 어깨 배지만 / 명예의 전당 박제(hofLocked) = 골드 테두리(.stamped)
+  const stampCls = t.hofLocked ? ' stamped' : '';
+  const crown = seat ? `<span class="seat-crown">${icon('i-crown', csz + 3)}</span>` : '';
   return `<span class="tag-pin ${tier}" data-tag="${t.id}">${icon(pinId, psz)}</span>` +
-    `<span class="tag-marker ${tier}" data-tag="${t.id}" style="${style}">${count}${escapeHtml(text)}</span>`;
+    `<span class="tag-marker ${tier}${stampCls}" data-tag="${t.id}" style="${style}">${crown}${count}${textHtml}</span>`;
 }
 
 // 줌별 구당 표시 상한 (§9-3): 전체 뷰 = 1개, 줌인할수록 상위 10개까지 점진 확대
@@ -181,6 +202,7 @@ export function renderTags() {
   const s = getState();
   const byGu = tagsForMap();
   const topByGu = weeklyTopTagIdByGu();
+  topByGuCache = topByGu; // updateSingleTag 재사용 (매 리액션 전체 재계산 방지, §9-3)
   const cap = guCap();
 
   // ── 노출 규칙 (확정) ──────────────────────────────────────────
@@ -285,8 +307,8 @@ export function renderTags() {
     placedBoxes.push({ x: placement.bx, y: pp.y + offsetY, w: placement.box.w, h: placement.box.h });
 
     const marker = L.marker(anchor, {
-      icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY, placement.tx), className: 'tag-marker-wrap', iconSize: null }),
-      zIndexOffset: t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
+      icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY, placement.tx, isSeat), className: 'tag-marker-wrap', iconSize: null }),
+      zIndexOffset: isSeat ? 1500 : t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
     });
     marker.on('click', () => handlers.onTagClick?.(t.id));
     tagLayerGroup.addLayer(marker);
@@ -315,8 +337,9 @@ export function updateSingleTag(tagId) {
   const tier = sizeTier(counts.total, entry.tag.guRank);
   const t = { ...entry.tag, counts, topType, tier };
   const displayTier = map.getZoom() < CONFIG.LABEL_FULLSIZE_ZOOM ? 'small' : tier;
+  const seat = topByGuCache[t.guId] === tagId; // 캐시된 고정석 기준(전체 재계산은 moveend renderTags에서만)
   entry.marker.setIcon(
-    L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0, entry.tx ?? 9), className: 'tag-marker-wrap', iconSize: null })
+    L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0, entry.tx ?? 9, seat), className: 'tag-marker-wrap', iconSize: null })
   );
   entry.tag = t; // 다음 승격 비교 기준 갱신
   // 시그니처 "감정 스밈" (brief §2): 크기 단계 상승 순간만 말풍선 팝 + 구 색 파동
