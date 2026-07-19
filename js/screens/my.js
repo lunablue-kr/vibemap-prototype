@@ -17,7 +17,7 @@ export function renderMyIcon() {
   const s = getState();
   const home = s.user.homeGuId ? getDistrict(s.user.homeGuId) : null;
   const btn = document.getElementById('my-icon');
-  btn.textContent = home ? Array.from(home.name)[0] : '나'; // 홈 미설정 시 '나'
+  btn.textContent = home ? Array.from(home.name)[0] : 'MY'; // 홈 미설정 시 'MY'
   btn.classList.toggle('no-home', !home);
 }
 

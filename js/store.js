@@ -90,8 +90,9 @@ export async function initStore() {
   const saved = localStorage.getItem(LS_KEY);
   if (saved) {
     const p = JSON.parse(saved);
-    state.tags = state.tags.concat(p.tags.filter((t) => !t.id.startsWith('seed-')));
-    state.reactions = state.reactions.concat(p.reactions.filter((r) => !r.tossKey.startsWith('seed-')));
+    // 손상·부분 저장본 방어 (필드 누락 시 빈 배열)
+    state.tags = state.tags.concat((p.tags || []).filter((t) => !t.id.startsWith('seed-')));
+    state.reactions = state.reactions.concat((p.reactions || []).filter((r) => !r.tossKey.startsWith('seed-')));
     state.reports = p.reports || [];
     state.dailyLimits = p.dailyLimits || {};
     state.user = { ...DEFAULT_USER, ...(p.user || {}) }; // 구 저장본에 없는 신규 필드 기본값 병합

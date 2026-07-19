@@ -80,6 +80,7 @@ cd prototype && python3 -m http.server 8899
 - 공개 저장소 커밋 author 이메일을 GitHub noreply로 이력 재작성 (현재 개인 이메일 노출 — 사용자 결정: 출시 전 진행)
 - 시드 파일 교체: demo-tags.json(시연용) → seed-tags.json(출시 규격, §13 준수) 로드로 전환 (store.js `initStore` fetch 한 줄). **이 전환은 한 세션에서 시험 적용·검증 완료 후 되돌림** — 베타 데모 유지 목적. 재적용 시 아래 UX 항목 동반 처리 필요
 - 위치 시뮬레이션 바·window.__vibemapMap·__vibemapReset·__labelDrops 제거 (index.html #dev-bar, app.js initDevBar, map.js 훅) — **실기기 위치 SDK(startUpdateLocation) 연동과 세트**. SDK 없이 개발바만 제거하면 원정 글쓰기·현장 리액션 경로가 항상 위치 null이 됨
+- **`config.DEV_FORCE_ONBOARDING: false`로 변경** (현재 테스트/데모용 true — 매 진입 온보딩 재노출). 출시 시 온보딩은 1회만
 - **출시 시드 전환 시 UX 동반 처리 (design-reviewer 지적)**: ① 초기엔 전 구 "불씨"라 롤링 칩이 `👑 —`/`🔥 —` 영구 반복 → 데이터 없을 때 전용 카피("집계 중" 등, ranking.js `rollingChips` '—' 대체) ② 랭킹 시트 빈 상태 2개 연속 시 섹션 간 여백 과다 ③ 고정석 왕관: sparse 시드에선 구당 태그 1~2개라 왕관이 흔해짐(희소성 저하) — 프로덕션 데이터 누적 시 자연 해소, 필요 시 원거리 줌 왕관 억제 검토
 
 **기능·UX**:

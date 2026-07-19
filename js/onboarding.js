@@ -12,7 +12,7 @@ let onDone = null;
 export function initOnboarding(handlers = {}) {
   onDone = handlers.onDone;
   const s = getState();
-  if (s.user.onboarded) return; // 이미 완료 — 재노출 금지
+  if (s.user.onboarded && !CONFIG.DEV_FORCE_ONBOARDING) return; // 완료 시 재노출 금지(테스트 플래그면 매번 노출)
   const el = document.getElementById('onboarding');
   el.hidden = false;
   el.addEventListener('click', handleClick);

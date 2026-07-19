@@ -2,6 +2,9 @@
 export const CONFIG = {
   APP_NAME: '우리동네 바이브',
 
+  // [테스트/데모 전용] true면 온보딩을 매 진입마다 재노출(onboarded 무시). 출시 시 false — §11 체크리스트
+  DEV_FORCE_ONBOARDING: true,
+
   TAG_MAX_LENGTH: 30, // v0.5: 50→30자
 
   // 하루 제한 (§6, v0.5.3 조정)
