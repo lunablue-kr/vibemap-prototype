@@ -424,3 +424,4 @@
   min-height: 44px; cursor: pointer;
 }
 .onboard-city:active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.onboard-skip { display: block; margin: 14px auto 0; border: none; background: none; color: var(--ink-soft); font-size: 13px; padding: 8px 12px; cursor: pointer; }

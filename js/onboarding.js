@@ -28,6 +28,7 @@ function renderStep1() {
         <button class="btn primary" data-onboard="seoul">네, 서울에 살아요</button>
         <button class="btn" data-onboard="outside">아니요, 다른 지역이에요</button>
       </div>
+      <button class="onboard-skip" data-onboard="skip">나중에 할게요</button>
     </div>`;
 }
 
@@ -46,7 +47,8 @@ function renderStep2() {
 function handleClick(e) {
   const step1 = e.target.closest('[data-onboard]');
   if (step1) {
-    if (step1.dataset.onboard === 'seoul') finishSeoul();
+    const v = step1.dataset.onboard;
+    if (v === 'seoul' || v === 'skip') finishSeoul(); // 스킵 = 강제 안 함(검수 다크패턴 회피). 홈은 마이에서 나중에
     else renderStep2();
     return;
   }
