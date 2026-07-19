@@ -11,12 +11,13 @@ const state = {
   reports: [],   // { tagId, tossKey, reason, createdAt }
   dailyLimits: {}, // { 'YYYY-MM-DD': { postsUsed, reactionsUsed, adBonus } }
   // homeGuId null 허용 (§5 v0.5.3: 홈 없는 비서울 구경꾼). originCity: 비서울 출신(오픈 투표 연결)
-  user: { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false },
+  // firstTagDone: 첫 태그 축하 연출 1회성 트리거 (§4 초기 활성화)
+  user: { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false, firstTagDone: false },
   regionVotes: [], // { cityId, at } — 잠긴 지역 오픈 요청 투표 (§5)
   moderationQueue: [], // 부정어 감지 → 노출 보류 태그 id
 };
 
-const DEFAULT_USER = { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false };
+const DEFAULT_USER = { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false, firstTagDone: false };
 
 export function getState() {
   return state;

@@ -2,9 +2,10 @@
 // 데이터 초기화는 개발 바(dev-bar) 전용 — 정식 화면에 두면 홈 쿨다운(§5) 우회 경로가 됨
 import { CONFIG } from './../config.js';
 import { getState, getDistrict } from './../store.js';
-import { getLimitStatus, watchAdForBonus } from './../limits.js';
+import { getLimitStatus, watchAdForBonus, claimShareReward } from './../limits.js';
 import { setHome, cooldownLeftDays } from './../home.js';
 import { cityName } from './../onboarding.js';
+import { shareInvite } from './../mock-toss.js';
 import { toast } from './../ui.js';
 
 let onDataChange = null;
@@ -25,6 +26,13 @@ export function initMySheet(handlers) {
     if (e.target.id === 'watch-ad-btn') {
       toast(watchAdForBonus().message);
       renderMySheet();
+    }
+    // 공유 리워드(§4): 초대 공유 시트(SDK) 성공 시 오늘 글쓰기 +N회. 취소·실패 대비 catch.
+    if (e.target.id === 'share-invite-btn') {
+      e.target.disabled = true; // 응답 전 연타로 공유 시트 중복 방지
+      shareInvite()
+        .then(() => { toast(claimShareReward().message); renderMySheet(); })
+        .catch(() => { toast('친구 초대가 취소되었어요.'); renderMySheet(); });
     }
   });
   el.addEventListener('change', (e) => {
@@ -71,6 +79,7 @@ export function renderMySheet() {
       <h3>오늘의 활동</h3>
       <p>오늘 남은 횟수 · 태그 작성 ${l.postsLeft}회 · 리액션 ${l.reactionsLeft}회</p>
       <button id="watch-ad-btn" class="btn" ${l.adUsed ? 'disabled' : ''}>광고 보고 태그 ${CONFIG.AD_BONUS_POSTS}회 충전받기</button>
+      ${CONFIG.FLAGS.shareReward ? `<button id="share-invite-btn" class="btn accent" ${l.shareUsed ? 'disabled' : ''}>친구 초대하고 태그 ${CONFIG.SHARE_REWARD_POSTS}회 충전받기</button>` : ''}
     </div>
     <div class="my-section placeholder">
       <h3>뱃지 · 포인트 · 공유 카드</h3>

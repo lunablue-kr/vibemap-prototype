@@ -22,3 +22,10 @@ export function setCurrentGuId(guId) {
 export function sendFunctionalMessage(text) {
   console.info('[기능성 메시지 목]', text);
 }
+
+// 공유 리워드 SDK 목 (§4·§9-6 v0.5.3 Phase 1) — 실제 앱은 앱인토스 공유 리워드 SDK.
+// 친구 초대 공유 시트를 띄우고 성공 시 resolve. 목은 즉시 성공 반환.
+export function shareInvite() {
+  console.info('[공유 리워드 SDK 목] 친구 초대 공유 시트 → 성공');
+  return Promise.resolve({ shared: true });
+}

@@ -41,11 +41,17 @@ export function createTag(guId, lat, lng, text) {
   s.tags.push(tag);
   if (check.held) s.moderationQueue.push(tag.id);
   usePost();
+  // 첫 태그 축하 (§4 초기 활성화): 지도에 실제 표시되는 첫 태그(공개)에만 1회성 트리거
+  const firstTag = !check.held && !s.user.firstTagDone;
+  if (firstTag) s.user.firstTagDone = true;
   save();
 
   return {
     ok: true,
     held: !!check.held,
+    firstTag,
+    id: tag.id,
+    guId,
     message: check.held
       ? '등록되었어요. 확인 후 지도에 표시돼요.'
       : '태그가 지도에 표시되었어요!',

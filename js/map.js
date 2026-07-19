@@ -321,19 +321,37 @@ export function updateSingleTag(tagId) {
 const TIER_ORDER = { small: 0, mid: 1, big: 2 };
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-// 승격 연출: 말풍선 탱글 팝 + 해당 구 채움색이 한 번 짙어졌다 돌아오는 짧은 파동
-function emotionSeep(marker, guId) {
-  if (reduceMotion) return;
-  const el = marker.getElement()?.querySelector?.('.tag-marker');
+// 말풍선 탱글 팝 (재발동 위해 클래스 리셋 후 재부여)
+function popMarker(marker) {
+  const el = marker?.getElement?.()?.querySelector?.('.tag-marker');
   if (el) { el.classList.remove('promote'); void el.offsetWidth; el.classList.add('promote'); }
+}
+
+// 구 채움색이 한 번 짙어졌다 돌아오는 파동 (감정 스밈). CSS 트랜지션과 맞물려 피었다 사라짐
+function pulseDistrict(guId, delta, ms) {
   if (!geoLayer) return;
   geoLayer.eachLayer((layer) => {
     if (layer.feature?.properties?.code !== guId) return;
     const base = layer.options.fillOpacity;
-    layer.setStyle({ fillOpacity: Math.min(1, base + 0.18) });
-    setTimeout(() => layer.setStyle({ fillOpacity: base }), 420); // CSS 트랜지션과 맞물려 파동이 피었다 사라짐
-
+    layer.setStyle({ fillOpacity: Math.min(1, base + delta) });
+    setTimeout(() => layer.setStyle({ fillOpacity: base }), ms);
   });
+}
+
+// 승격 연출: 말풍선 팝 + 해당 구 짧은 파동
+function emotionSeep(marker, guId) {
+  if (reduceMotion) return;
+  popMarker(marker);
+  pulseDistrict(guId, 0.18, 420);
+}
+
+// 첫 태그 축하 (§4 초기 활성화): 시그니처 "감정 스밈"을 승격보다 크게(더 짙게·길게).
+// 새 태그가 구당 표시 상한에 걸려 마커가 없어도 구 색 파동은 항상 실행 — 붐비는 구에서도 첫 흔적이 보이도록.
+export function celebrateTag(tagId, guId) {
+  if (reduceMotion) return;
+  const entry = markersByTagId[tagId];
+  if (entry) popMarker(entry.marker);
+  pulseDistrict(guId, 0.28, 700); // 승격(+0.18)보다 강한 파동
 }
 
 export function refreshMap() {

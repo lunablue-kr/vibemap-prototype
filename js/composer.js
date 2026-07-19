@@ -87,10 +87,12 @@ function handleClick(e) {
   if (e.target.id === 'composer-submit') {
     const text = document.getElementById('composer-input').value;
     const r = createTag(pending.guId, pending.lat, pending.lng, text);
-    toast(r.message);
     if (r.ok) {
       closeComposer();
-      onCreated?.();
+      onCreated?.(r); // r.firstTag/r.id → 첫 태그 축하 연출 (§4)
+      toast(r.firstTag ? '지도에 첫 태그를 남겼어요! 우리 동네의 바이브가 시작됐어요.' : r.message);
+    } else {
+      toast(r.message);
     }
   }
 }

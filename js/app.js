@@ -3,7 +3,7 @@ import { CONFIG } from './config.js';
 import { initStore, getState, getDistrict, resetAll, snapIntoDistrict } from './store.js';
 import { loadDictionary } from './moderation.js';
 import { loadIcons } from './icons.js';
-import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize, gentlePanTo, tagLatLng } from './map.js';
+import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize, gentlePanTo, tagLatLng, celebrateTag } from './map.js';
 import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
 import { toast, openSheet, closeSheets, anySheetOpen, initSheetDrag } from './ui.js';
 import { initPopup, openPopup, closePopup, isPopupOpen } from './popup.js';
@@ -67,7 +67,10 @@ async function main() {
     onOpenDistrict: goDistrict,
   });
   initComposer({
-    onCreated: () => { renderTags(); refreshDistrict(); renderChip(); renderMySheet(); },
+    onCreated: (r) => {
+      renderTags(); refreshDistrict(); renderChip(); renderMySheet();
+      if (r?.firstTag) celebrateTag(r.id, r.guId); // 첫 태그 축하 (§4, 마커 없어도 구 파동)
+    },
     onOpenDistrict: goDistrict,
   });
   initChip(() => { closePopup(); closeComposer(); renderRankingSheet(); openSheet('ranking'); });

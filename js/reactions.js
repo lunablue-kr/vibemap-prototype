@@ -46,10 +46,18 @@ export function addReaction(tagId, type) {
   });
   useReaction();
   save();
-  // 기능성 메시지(§9-6 리텐션): 태그가 공감 10개 도달 순간 알림 (목 — 실제는 tag.tossKey 대상 발송)
+  // 기능성 메시지(§9-6 리텐션·§4 초기 활성화): 태그 "작성자"(tag.tossKey)에게 발송 — 재방문 훅.
+  // 남이 내 태그에 리액션한 순간이 신호이므로 리액션한 사람(reactor)이 작성자가 아닐 때만 발송(셀프 리액션 제외).
+  // 내 태그 첫 리액션(강화) + 리액션 10개 마일스톤 두 시점.
+  const reactor = getTossKey();
   const total = reactionCounts(tagId).total;
-  if (total === CONFIG.REACTION_MILESTONE) {
-    sendFunctionalMessage(`내 태그가 ${getDistrict(tag.guId).name}에서 리액션 ${total}개를 받았어요!`);
+  const guName = getDistrict(tag.guId).name;
+  if (reactor !== tag.tossKey) {
+    if (total === 1) {
+      sendFunctionalMessage(`${guName}에 남긴 내 태그에 첫 리액션이 달렸어요!`);
+    } else if (total === CONFIG.REACTION_MILESTONE) {
+      sendFunctionalMessage(`내 태그가 ${guName}에서 리액션 ${total}개를 받았어요!`);
+    }
   }
   return { ok: true, isOnsite: onsite }; // isOnsite: "현장 ×2!" 순간 피드백용 (§9-1)
 }
