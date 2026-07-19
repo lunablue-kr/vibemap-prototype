@@ -167,12 +167,12 @@
 }
 
 /* 이번주 1위 팝업 = 골드 크림 필 / 지난주 1위 박제 팝업 = 라벤더 필 (색으로 시기 구분) */
-.popup-card.seat { background: #FFFBEF; }
-.popup-card.stamped { background: #F7F4FD; }
+.popup-card.seat { background: var(--seat-soft); }
+.popup-card.stamped { background: var(--stamp-card); }
 .popup-crown { display: inline-flex; align-items: center; line-height: 0; }
 .popup-hof {
   display: flex; align-items: center; justify-content: center; gap: 5px;
-  font-size: 13px; color: var(--stamp-ink); background: #EFEAFB;
+  font-size: 13px; color: var(--stamp-ink); background: var(--stamp-soft);
   border-radius: 12px; padding: 11px;
 }
 
@@ -192,7 +192,7 @@
   border: none;
   background: none;
   font-size: 18px;
-  color: #C7B3BD;
+  color: var(--ink-faint);
   cursor: pointer;
   padding: 12px 14px;
 }
@@ -211,7 +211,7 @@
 #popup-report-menu[hidden], .report-menu[hidden] { display: none; }
 .report-reason {
   border: none;
-  background: #FBF3F7;
+  background: var(--surface-soft);
   border-radius: 999px;
   padding: 12px 14px;
   min-height: 44px;
@@ -227,7 +227,7 @@
   justify-content: center;
   gap: 3px;
   border: none;
-  background: #FBF3F7;
+  background: var(--surface-soft);
   color: var(--ink);
   border-radius: 999px;
   padding: 9px 13px;
@@ -238,7 +238,7 @@
   transition: transform 0.15s;
 }
 .react-btn:active { transform: scale(1.08); }
-.react-btn.mine { background: #FCE3EF; color: var(--accent); font-weight: 700; }
+.react-btn.mine { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 
 /* ── 인라인 말풍선 작성창 (§9-1) — 태그 말풍선과 동질 ── */
 .composer-balloon {
@@ -254,7 +254,7 @@
 .composer-head { display: flex; justify-content: space-between; align-items: center; }
 .composer-head .popup-gu { padding: 6px 0; }
 .composer-head [data-close] {
-  border: none; background: none; font-size: 15px; color: #C7B3BD;
+  border: none; background: none; font-size: 15px; color: var(--ink-faint);
   cursor: pointer; padding: 10px 12px; min-width: 44px; min-height: 44px;
 }
 .composer-balloon textarea {
@@ -319,7 +319,7 @@
 .sort-bar { display: flex; gap: 6px; margin-bottom: 14px; }
 .sort-bar button {
   border: none;
-  background: #FBF3F7;
+  background: var(--surface-soft);
   border-radius: 999px;
   padding: 8px 15px;
   font-size: 13px;
@@ -327,19 +327,19 @@
   cursor: pointer;
   color: var(--ink-soft);
 }
-.sort-bar button.active { color: var(--accent); background: #FCE3EF; font-weight: 700; }
+.sort-bar button.active { color: var(--accent); background: var(--accent-soft); font-weight: 700; }
 
 .tag-card { background: #FCFAFB; border: 1px solid var(--line); border-radius: 14px; padding: 13px; margin-bottom: 10px; }
 /* 이번 주 1위 = 골드 크림 카드 / 지난주 1위 박제 = 라벤더 카드 (색으로 시기 구분) */
-.tag-card.seat { background: #FFFBEF; border-color: #F3E4B8; }
-.tag-card.stamped { background: #F5F2FD; border-color: #D9CEF7; }
+.tag-card.seat { background: var(--seat-soft); border-color: #F3E4B8; }
+.tag-card.stamped { background: var(--stamp-card); border-color: #D9CEF7; }
 .tag-card-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 8px; }
 .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .rank-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-family: var(--font-display); }
 .rank-badge.seat { background: var(--seat-fill); color: #7A5A00; }
-.rank-badge.stamped { background: #EFEAFB; color: var(--stamp-ink); }
+.rank-badge.stamped { background: var(--stamp-soft); color: var(--stamp-ink); }
 .hof-note { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--stamp-ink); padding: 6px 2px; }
-.report-btn { border: none; background: none; color: #C7B3BD; font-size: 12px; cursor: pointer; padding: 10px; margin: -10px -10px 0 0; }
+.report-btn { border: none; background: none; color: var(--ink-faint); font-size: 12px; cursor: pointer; padding: 10px; margin: -10px -10px 0 0; }
 .tag-text { font-size: 14.5px; margin-bottom: 10px; line-height: 1.45; }
 .tag-card-foot { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -356,14 +356,14 @@
 .rank-no {
   width: 24px; height: 24px; flex: none;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; background: #FBF3F7;
+  border-radius: 50%; background: var(--surface-soft);
   font-family: var(--font-display); font-size: 12px; color: var(--accent);
 }
 .rank-row:first-child .rank-no { background: var(--gold); color: #7A5A00; } /* 1위 골드 */
 .rank-name { flex: 1; }
 .rank-name small { color: var(--ink-soft); }
 .rank-val { color: var(--ink-soft); font-size: 13px; }
-.rank-section.ember { background: #FBF3F7; border-radius: 14px; padding: 14px; }
+.rank-section.ember { background: var(--surface-soft); border-radius: 14px; padding: 14px; }
 .ember-hint { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
 .ember-list { font-size: 13px; color: var(--ink); }
 

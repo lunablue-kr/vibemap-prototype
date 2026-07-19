@@ -41,15 +41,18 @@ export function openSheet(name) {
 // 시트 스와이프 다운 닫기: 그랩바·타이틀에서, 또는 콘텐츠가 최상단(scrollTop 0)일 때
 // 아래로 90px 이상 끌면 닫힘 (맨 끝까지 올라간 시트를 한 번 더 당겨 닫는 관례)
 export function initSheetDrag() {
+  const INTERACTIVE = 'button, select, textarea, input, a, [data-react], [data-report], [data-reason]';
+  const THRESHOLD = 8; // 이 이상 내려야 드래그로 인정 (탭 지터가 드래그로 오인되지 않게)
   SHEETS.forEach((s) => {
     const el = document.getElementById('sheet-' + s);
     let startY = null;
     let dragging = false;
     let moved = false;
+    const reset = () => { dragging = false; el.style.transition = ''; el.style.transform = ''; };
     el.addEventListener('touchstart', (e) => {
       const onHandle = !!e.target.closest('.sheet-grab, .sheet-title-row, .district-head');
-      // 그랩·타이틀은 항상 / 콘텐츠는 최상단일 때만 (스크롤 중이면 스크롤에 양보)
-      if (!onHandle && el.scrollTop > 0) { dragging = false; return; }
+      // 그랩·타이틀은 항상 / 콘텐츠는 최상단일 때만, 단 버튼·셀렉트 등 인터랙티브 요소 탭은 제외
+      if (!onHandle && (el.scrollTop > 0 || e.target.closest(INTERACTIVE))) { dragging = false; return; }
       startY = e.touches[0].clientY;
       dragging = true;
       moved = false;
@@ -57,7 +60,7 @@ export function initSheetDrag() {
     el.addEventListener('touchmove', (e) => {
       if (!dragging) return;
       const dy = e.touches[0].clientY - startY;
-      if (dy <= 0) return; // 위로 스와이프는 스크롤에 맡김
+      if (dy <= THRESHOLD) return; // 임계값 전에는 유예 (탭·미세 이동은 스크롤/클릭에 양보)
       moved = true;
       if (e.cancelable) e.preventDefault(); // 콘텐츠 스크롤·바운스 방지
       el.style.transition = 'none';
@@ -65,11 +68,11 @@ export function initSheetDrag() {
     }, { passive: false });
     el.addEventListener('touchend', (e) => {
       if (!dragging) return;
-      dragging = false;
-      el.style.transition = '';
-      el.style.transform = '';
-      if (moved && e.changedTouches[0].clientY - startY > 90) closeSheets();
+      const close = moved && e.changedTouches[0].clientY - startY > 90;
+      reset();
+      if (close) closeSheets();
     });
+    el.addEventListener('touchcancel', reset); // 통화 수신 등 터치 취소 시 위치 복구
   });
 }
 

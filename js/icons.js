@@ -22,7 +22,5 @@ export function icon(id, size = 16, cls = '') {
   return `<svg class="vibe-ic ${cls}" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true"><use href="#${id}"/></svg>`;
 }
 
-// 리액션·부문·핀 id → 아이콘 심볼 매핑 (단일 진실 지점)
-export const REACTION_ICON = { like: 'i-like', funny: 'i-funny', hug: 'i-hug', hip: 'i-hip' };
-export const CATEGORY_ICON = { funny: 'i-funny', hug: 'i-hug', hip: 'i-hip', rising: 'i-fire', top: 'i-crown' };
+// 핀 id → 아이콘 심볼 매핑. 리액션·부문 아이콘은 CONFIG.REACTION_TYPES[].icon / ALL_CATEGORIES[].icon이 단일 진실원
 export const PIN_ICON = { home: 'i-home', away: 'i-flag' };

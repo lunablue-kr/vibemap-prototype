@@ -62,7 +62,7 @@ export function initMap(h) {
     if (!programmaticMove) handlers.onMapMoveStart?.();
   });
   map.on('click', (e) => handlers.onBareMapTap?.(e)); // 오버레이 닫기 규칙용 (폴리곤·마커 탭에서도 발생)
-  window.__vibemapMap = map; // 프로토타입 디버그용 (출시 전 제거)
+  window.__vibemapMap = map; // TODO(release-blocker): 프로토타입 디버그 훅, 출시 전 제거
 }
 
 export function renderDistricts() {
@@ -140,10 +140,10 @@ function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP, seat = false) {
   const csz = { small: 11, mid: 13, big: 15 }[tier];
   const count = t.counts.total > 0 ? `${icon(t.topType.icon, csz)} ${t.counts.total} ` : '';
   const style = `transform: translate(${offsetX}px, calc(-50% + ${offsetY}px));`;
-  // 고정석(주간 1위) = 왕관 배지 + 골드 크림 필 / 명예의 전당 박제(hofLocked) = 골드 테두리(.stamped)
+  // 이번주1위(골드 필)·지난주1위 박제(라벤더 필) 둘 다 왕관 (design-brief §7 "크라운은 둘 다 골드 유지")
   const seatCls = seat ? ' seat' : '';
   const stampCls = t.hofLocked ? ' stamped' : '';
-  const crown = seat ? `<span class="seat-crown">${icon('i-crown', csz + 3)}</span>` : '';
+  const crown = (seat || t.hofLocked) ? `<span class="seat-crown">${icon('i-crown', csz + 3)}</span>` : '';
   return `<span class="tag-pin ${tier}" data-tag="${t.id}">${icon(pinId, psz)}</span>` +
     `<span class="tag-marker ${tier}${seatCls}${stampCls}" data-tag="${t.id}" style="${style}">${crown}${count}${textHtml}</span>`;
 }
@@ -280,7 +280,7 @@ export function renderTags() {
 
     const marker = L.marker(anchor, {
       icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY, placement.tx, isSeat), className: 'tag-marker-wrap', iconSize: null }),
-      zIndexOffset: isSeat ? 1500 : t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
+      zIndexOffset: (isSeat || t.hofLocked) ? 1500 : t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
     });
     marker.on('click', () => handlers.onTagClick?.(t.id));
     tagLayerGroup.addLayer(marker);

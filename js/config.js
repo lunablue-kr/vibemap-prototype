@@ -20,6 +20,7 @@ export const CONFIG = {
   ],
   ONSITE_MULTIPLIER: 2,
   WEEKLY_REACTION_SCORE_CAP: 50, // 태그당 주간 점수 반영 상한
+  REACTION_MILESTONE: 10, // 태그가 이 리액션 수 도달 시 기능성 메시지 알림 (§9-6)
 
   // 점수 정의 (§8 확정): 태그 등록 +3 / 리액션 수신 +1 (현장 2배)
   SCORE_PER_TAG: 3,

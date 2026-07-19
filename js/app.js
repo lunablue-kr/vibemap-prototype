@@ -79,7 +79,7 @@ async function main() {
     renderMySheet();
     openSheet('my');
   });
-  // 초기화 버튼은 지인 공유를 위해 UI에서 제거. 필요 시 콘솔에서 window.__vibemapReset()
+  // TODO(release-blocker): 콘솔 초기화 훅 — 하루 제한·홈 쿨다운·신고 누적 전면 우회 경로. 출시 전 dev-bar·디버그훅과 함께 제거
   window.__vibemapReset = resetAll;
   document.getElementById('sheet-dim').addEventListener('click', closeSheets);
   document.addEventListener('click', (e) => {

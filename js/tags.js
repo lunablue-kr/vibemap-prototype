@@ -1,7 +1,7 @@
 // 태그 작성·조회 로직 (설계서 §5, §6)
 import { CONFIG } from './config.js';
-import { getState, save, getDistrict } from './store.js';
-import { getTossKey, getCurrentGuId, sendFunctionalMessage } from './mock-toss.js';
+import { getState, save } from './store.js';
+import { getTossKey, getCurrentGuId } from './mock-toss.js';
 import { checkText } from './moderation.js';
 import { canPost, usePost } from './limits.js';
 import { reactionCounts } from './reactions.js';
@@ -93,13 +93,4 @@ export function districtFeed(guId, sort) {
   if (sort === 'popular') list.sort((a, b) => b.counts.total - a.counts.total);
   else list.sort((a, b) => b.createdAt - a.createdAt);
   return list;
-}
-
-// 공감 알림 목 (기능성 메시지 — 설계서 §9-1)
-export function notifyReactionMilestone(tag) {
-  const c = reactionCounts(tag.id);
-  if (c.total === 10) {
-    const gu = getDistrict(tag.guId);
-    sendFunctionalMessage(`내 태그가 ${gu.name}에서 공감 10개를 받았어요!`);
-  }
 }

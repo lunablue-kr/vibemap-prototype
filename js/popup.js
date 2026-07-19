@@ -7,7 +7,7 @@ import { reportTag, REPORT_REASONS } from './moderation.js';
 import { getTossKey } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
 import { toast, escapeHtml, viewportBox, reactionPop } from './ui.js';
-import { icon, REACTION_ICON, PIN_ICON } from './icons.js';
+import { icon, PIN_ICON } from './icons.js';
 import { weeklyTopTagIdByGu } from './ranking.js';
 
 let currentTagId = null;
@@ -83,7 +83,7 @@ function render() {
   const origin = tag.isResident
     ? `${icon(PIN_ICON.home, 14)} 주민`
     : `${icon(PIN_ICON.away, 14)} 방문`;
-  const crown = isSeat ? `<span class="popup-crown">${icon('i-crown', 16)}</span>` : ''; // 고정석 왕관
+  const crown = (isSeat || isStamped) ? `<span class="popup-crown">${icon('i-crown', 16)}</span>` : ''; // 이번주·지난주 1위 둘 다 왕관 (brief §7)
   const el = document.getElementById('tag-popup');
   el.className = 'popup-card' + (isStamped ? ' stamped' : isSeat ? ' seat' : '');
   el.innerHTML = `

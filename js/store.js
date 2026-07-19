@@ -1,5 +1,6 @@
 // 상태 저장소 — localStorage 목 백엔드.
 // 실제 앱에서는 Supabase로 교체 (테이블 구조는 설계서 §10 "데이터 테이블" 기준).
+import { CONFIG } from './config.js';
 
 const LS_KEY = 'vibemap.state.v2'; // v2: 리액션 개편(hip)·홈 변경 이력 — v1 상태와 비호환
 
@@ -152,6 +153,6 @@ function ringCentroid(geometry) {
 export function applyReportState(tagId) {
   const count = state.reports.filter((r) => r.tagId === tagId).length;
   const tag = state.tags.find((t) => t.id === tagId);
-  // 보류(held) 상태도 신고 누적 시 블라인드로 확정 (관리자 검토 우선순위 표시)
-  if (tag && count >= 3 && (tag.state === 'public' || tag.state === 'held')) tag.state = 'blinded';
+  // 보류(held) 상태도 신고 누적 시 블라인드로 확정 (관리자 검토 우선순위 표시). 임계값은 config (§10 하드코딩 금지)
+  if (tag && count >= CONFIG.REPORT_BLIND_COUNT && (tag.state === 'public' || tag.state === 'held')) tag.state = 'blinded';
 }

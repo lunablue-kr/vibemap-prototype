@@ -1,8 +1,8 @@
 // 리액션 4종 로직 (설계서 §5, §6)
 // 어디서나 가능. 현장(그 구에 있거나 홈 구)은 점수 2배 (v0.5.2: 상시 📍 삭제 → 누르는 순간 "현장 ×2!" 피드백). 태그당 유저 1개.
 import { CONFIG } from './config.js';
-import { getState, save } from './store.js';
-import { getTossKey, getCurrentGuId } from './mock-toss.js';
+import { getState, save, getDistrict } from './store.js';
+import { getTossKey, getCurrentGuId, sendFunctionalMessage } from './mock-toss.js';
 import { canReact, useReaction } from './limits.js';
 
 export function myReaction(tagId) {
@@ -46,6 +46,11 @@ export function addReaction(tagId, type) {
   });
   useReaction();
   save();
+  // 기능성 메시지(§9-6 리텐션): 태그가 공감 10개 도달 순간 알림 (목 — 실제는 tag.tossKey 대상 발송)
+  const total = reactionCounts(tagId).total;
+  if (total === CONFIG.REACTION_MILESTONE) {
+    sendFunctionalMessage(`내 태그가 ${getDistrict(tag.guId).name}에서 리액션 ${total}개를 받았어요!`);
+  }
   return { ok: true, isOnsite: onsite }; // isOnsite: "현장 ×2!" 순간 피드백용 (§9-1)
 }
 
