@@ -31,6 +31,7 @@ export function openPopup(tagId) {
   const el = document.getElementById('tag-popup');
   el.hidden = false;
   positionNearTag(el, tagId);
+  requestAnimationFrame(() => el.classList.add('show')); // 페이드 인 (brief §2)
 }
 
 // 카드를 탭한 라벨 옆에 배치 — 실제 보이는 영역(visualViewport) 안으로 클램프
@@ -85,7 +86,7 @@ function render() {
     : `${icon(PIN_ICON.away, 14)} 방문`;
   const crown = (isSeat || isStamped) ? `<span class="popup-crown">${icon('i-crown', 16)}</span>` : ''; // 이번주·지난주 1위 둘 다 왕관 (brief §7)
   const el = document.getElementById('tag-popup');
-  el.className = 'popup-card' + (isStamped ? ' stamped' : isSeat ? ' seat' : '');
+  el.className = 'popup-card' + (isStamped ? ' stamped' : isSeat ? ' seat' : '') + (el.hidden ? '' : ' show');
   el.innerHTML = `
     <div class="popup-head">
       ${crown}

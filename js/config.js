@@ -4,10 +4,10 @@ export const CONFIG = {
 
   TAG_MAX_LENGTH: 30, // v0.5: 50→30자
 
-  // 하루 제한 (§6)
-  DAILY_POST_LIMIT: 3,
-  DAILY_REACTION_LIMIT: 20,
-  AD_BONUS_POSTS: 3,
+  // 하루 제한 (§6, v0.5.3 조정)
+  DAILY_POST_LIMIT: 2, // v0.5.3: 3→2 (생산 조여 품질↑)
+  DAILY_REACTION_LIMIT: 15, // v0.5.3: 20→15 (소비는 소폭만 — 지도 활력 유지)
+  AD_BONUS_POSTS: 2, // v0.5.3: 3→2
 
   // 리액션 4종 (v0.5 개편: 💪힘내 삭제 → ✨힙해요)
   // icon = vibe-icons.svg 심볼 id (v0.5.2: 자체 제작 SVG로 교체, 이모지는 약칭 폴백)
@@ -63,4 +63,31 @@ export const CONFIG = {
 
   // 랭킹 구 탭 → 카메라 이동 시 최대 줌 (크기 단계가 보이는 줌 이상으로)
   PAN_TO_DISTRICT_MAX_ZOOM: 12.5,
+
+  // 초기 활성화 (§4, v0.5.3 Phase 1): 공유 리워드 = 친구 초대 시 오늘 글쓰기 +N회
+  SHARE_REWARD_POSTS: 3, // 사행성 무관(현금 아님·앱 내 행동 보상). 브리프·설계서 미지정이라 기본 3회로 config화
+
+  // 비서울 온보딩 (§5, v0.5.3): 출신 지역 선택 → region_votes(오픈 투표)에 반영.
+  // 홈 설정 아님 — "○○이 열리면 알려드릴게요". id = 오픈 투표 city_id (서울은 이미 오픈이라 제외)
+  ORIGIN_CITIES: [
+    { id: 'busan', name: '부산' }, { id: 'incheon', name: '인천' }, { id: 'daegu', name: '대구' },
+    { id: 'daejeon', name: '대전' }, { id: 'gwangju', name: '광주' }, { id: 'ulsan', name: '울산' },
+    { id: 'sejong', name: '세종' }, { id: 'gyeonggi', name: '경기' }, { id: 'gangwon', name: '강원' },
+    { id: 'chungbuk', name: '충북' }, { id: 'chungnam', name: '충남' }, { id: 'jeonbuk', name: '전북' },
+    { id: 'jeonnam', name: '전남' }, { id: 'gyeongbuk', name: '경북' }, { id: 'gyeongnam', name: '경남' },
+    { id: 'jeju', name: '제주' }, { id: 'etc', name: '그 외' },
+  ],
+
+  // 피처 플래그 (v0.5.3) — Phase 2 (A)군은 미리 구현하되 Phase 1 빌드에선 off로 격리.
+  // 노출을 잠가도 코드는 존재하므로 실행 경로 차단 필수(테스트 안 된 코드의 버그 표면적 방지).
+  // DAU 기준 도달 시 개별 on. (B)군(내돈내산·정식광고·후보·검토)은 여기 없음 — 트래픽/검수 후 별도.
+  FLAGS: {
+    fiveCategories: false, // 5부문 결산 (로직 준비됨, ALL_CATEGORIES)
+    hallOfFame: false, // 명예의 전당
+    masterTag: false, // 마스터태그
+    conquestMedal: false, // 정복 훈장
+    chip5: false, // 롤링 칩 5종 확장
+    badgeExpansion: false, // 뱃지 확장(첫 태그·10회·5구 방문 등)
+    shareReward: true, // 공유 리워드 SDK — v0.5.3 Phase 1로 이동(초기 활성화, 현금 아님)
+  },
 };

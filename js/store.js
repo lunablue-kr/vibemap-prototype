@@ -10,17 +10,21 @@ const state = {
   reactions: [], // { tossKey, tagId, type, isOnsite, createdAt }
   reports: [],   // { tagId, tossKey, reason, createdAt }
   dailyLimits: {}, // { 'YYYY-MM-DD': { postsUsed, reactionsUsed, adBonus } }
-  user: { homeGuId: null, homeChangedAt: null }, // homeChangedAt: 쿨다운 판정 (설계서 §5)
+  // homeGuId null 허용 (§5 v0.5.3: 홈 없는 비서울 구경꾼). originCity: 비서울 출신(오픈 투표 연결)
+  user: { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false },
+  regionVotes: [], // { cityId, at } — 잠긴 지역 오픈 요청 투표 (§5)
   moderationQueue: [], // 부정어 감지 → 노출 보류 태그 id
 };
+
+const DEFAULT_USER = { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false };
 
 export function getState() {
   return state;
 }
 
 export function save() {
-  const { districts, tags, reactions, reports, dailyLimits, user, moderationQueue } = state;
-  localStorage.setItem(LS_KEY, JSON.stringify({ tags, reactions, reports, dailyLimits, user, moderationQueue,
+  const { districts, tags, reactions, reports, dailyLimits, user, regionVotes, moderationQueue } = state;
+  localStorage.setItem(LS_KEY, JSON.stringify({ tags, reactions, reports, dailyLimits, user, regionVotes, moderationQueue,
     districtLevels: districts.map((d) => ({ guId: d.guId, level: d.level, totalScore: d.totalScore })) }));
 }
 
@@ -85,7 +89,8 @@ export async function initStore() {
     state.reactions = state.reactions.concat(p.reactions.filter((r) => !r.tossKey.startsWith('seed-')));
     state.reports = p.reports || [];
     state.dailyLimits = p.dailyLimits || {};
-    state.user = p.user || { homeGuId: null, homeChangedAt: null };
+    state.user = { ...DEFAULT_USER, ...(p.user || {}) }; // 구 저장본에 없는 신규 필드 기본값 병합
+    state.regionVotes = p.regionVotes || [];
     state.moderationQueue = p.moderationQueue || [];
     (p.districtLevels || []).forEach((dl) => {
       const d = state.districts.find((x) => x.guId === dl.guId);

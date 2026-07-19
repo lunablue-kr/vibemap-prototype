@@ -36,7 +36,7 @@ export function openComposer(guId, lat, lng) {
   const body = !eligible.ok
     ? `<p class="composer-blocked">${eligible.message}</p>`
     : !canPost()
-    ? `<p class="composer-blocked">오늘 태그 작성 횟수를 다 썼어요. 광고를 보면 3회 충전돼요.</p>`
+    ? `<p class="composer-blocked">오늘 태그 작성 횟수를 다 썼어요. 광고를 보면 ${CONFIG.AD_BONUS_POSTS}회 충전돼요.</p>`
     : `<p class="hint">${notice ? notice + ' · ' : ''}특정 가게에 대한 부정적 후기는 삭제될 수 있어요</p>
        <textarea id="composer-input" rows="2" maxlength="${CONFIG.TAG_MAX_LENGTH}"
          placeholder="이 동네의 지금 분위기를 한 줄로"></textarea>
@@ -53,7 +53,9 @@ export function openComposer(guId, lat, lng) {
     ${body}`;
 
   positionBalloon(el, latLngToPagePoint(lat, lng));
+  el.classList.remove('show'); // 재오픈 시 페이드 재발동 보장 (지연 rAF 잔존 방지)
   el.hidden = false;
+  requestAnimationFrame(() => el.classList.add('show')); // 페이드 인 (brief §2)
   document.getElementById('composer-input')?.focus();
 }
 
@@ -68,7 +70,9 @@ export function isComposerOpen() {
 }
 
 export function closeComposer() {
-  document.getElementById('composer').hidden = true;
+  const el = document.getElementById('composer');
+  el.classList.remove('show'); // 다음 오픈 시 페이드 재발동
+  el.hidden = true;
   pending = null;
 }
 

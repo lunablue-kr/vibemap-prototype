@@ -23,7 +23,7 @@ export function canWriteIn(guId) {
 export function createTag(guId, lat, lng, text) {
   const eligible = canWriteIn(guId);
   if (!eligible.ok) return eligible;
-  if (!canPost()) return { ok: false, message: '오늘 태그 작성 횟수를 다 썼어요. 광고를 보면 3회 충전돼요.' };
+  if (!canPost()) return { ok: false, message: `오늘 태그 작성 횟수를 다 썼어요. 광고를 보면 ${CONFIG.AD_BONUS_POSTS}회 충전돼요.` };
 
   const check = checkText(text);
   if (!check.ok) return check;

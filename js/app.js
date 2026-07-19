@@ -12,6 +12,7 @@ import { initChip, renderChip } from './chips.js';
 import { initDistrictSheet, openDistrict, refreshDistrict } from './screens/district.js';
 import { renderRankingSheet } from './screens/ranking.js';
 import { initMySheet, renderMySheet, renderMyIcon } from './screens/my.js';
+import { initOnboarding } from './onboarding.js';
 
 // iOS Safari는 뷰포트 메타·touch-action으로 페이지 핀치줌이 안 막힘 — 사파리 전용
 // 제스처 이벤트를 직접 차단 (지도 핀치줌은 Leaflet이 터치 이벤트로 자체 처리라 영향 없음)
@@ -110,6 +111,8 @@ async function main() {
   initDevBar();
   renderMyIcon();
   invalidateMapSize();
+  // 첫 실행 온보딩 (§5 비서울 분기). 완료 시 마이 아이콘·시트 갱신
+  initOnboarding({ onDone: () => { renderMyIcon(); renderMySheet(); } });
 }
 
 function goDistrict(guId) {

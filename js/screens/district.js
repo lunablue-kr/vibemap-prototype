@@ -81,6 +81,7 @@ function render() {
     <div class="district-head">
       <h2>Lv.${d.level} ${d.name}</h2>
       ${s.user.homeGuId === d.guId ? `<span class="home-badge">${icon(PIN_ICON.home, 13)} 내 홈</span>` : ''}
+      <button data-close-sheet aria-label="닫기">✕</button>
     </div>
     <div class="sort-bar">
       <button data-sort="popular" class="${currentSort === 'popular' ? 'active' : ''}">리액션순</button>
