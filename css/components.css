@@ -327,7 +327,15 @@
 .sort-bar button.active { color: var(--accent); background: #FCE3EF; font-weight: 700; }
 
 .tag-card { background: #FCFAFB; border: 1px solid var(--line); border-radius: 14px; padding: 13px; margin-bottom: 10px; }
+/* 이번 주 1위 고정석 = 골드 크림 카드 / 지난주 1위 박제 = 골드 테두리 (팝업과 동일 위계) */
+.tag-card.seat { background: #FFFBEF; border-color: #F3E4B8; }
+.tag-card.stamped { border: 2px solid var(--gold-deep); }
 .tag-card-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 8px; }
+.card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.rank-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-family: var(--font-display); }
+.rank-badge.seat { background: var(--seat-fill); color: #7A5A00; }
+.rank-badge.stamped { background: #FFF6E0; color: var(--gold-deep); }
+.hof-note { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--gold-deep); padding: 6px 2px; }
 .report-btn { border: none; background: none; color: #C7B3BD; font-size: 12px; cursor: pointer; padding: 10px; margin: -10px -10px 0 0; }
 .tag-text { font-size: 14.5px; margin-bottom: 10px; line-height: 1.45; }
 .tag-card-foot { display: flex; gap: 6px; flex-wrap: wrap; }

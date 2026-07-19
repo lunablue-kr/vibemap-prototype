@@ -8,6 +8,7 @@ import { reportTag, REPORT_REASONS } from './../moderation.js';
 import { getTossKey } from './../mock-toss.js';
 import { toast, escapeHtml, openSheet, onsitePop } from './../ui.js';
 import { icon, PIN_ICON } from './../icons.js';
+import { weeklyTopTagIdByGu } from './../ranking.js';
 
 let currentGuId = null;
 let currentSort = 'popular';
@@ -62,6 +63,13 @@ function render() {
   if (!d) return;
   const s = getState();
   const feed = districtFeed(currentGuId, currentSort);
+  const seatId = weeklyTopTagIdByGu()[currentGuId]; // 이번 주 1위 고정석
+
+  // 고정석·박제는 정렬과 무관하게 리스트 최상단 고정 (지도 §9-3 우선 노출을 리스트에도 반영)
+  const seatTag = feed.find((t) => t.id === seatId);
+  const stamped = feed.filter((t) => t.hofLocked && t.id !== seatId);
+  const rest = feed.filter((t) => t.id !== seatId && !t.hofLocked);
+  const ordered = [seatTag, ...stamped, ...rest].filter(Boolean);
 
   document.getElementById('sheet-district').innerHTML = `
     <div class="sheet-grab"></div>
@@ -74,25 +82,36 @@ function render() {
       <button data-sort="recent" class="${currentSort === 'recent' ? 'active' : ''}">최신순</button>
     </div>
     <div class="district-feed">
-      ${feed.length ? feed.map(tagCard).join('') : '<p class="empty">아직 태그가 없어요. 지도의 빈 곳을 눌러 첫 태그를 남겨주세요!</p>'}
+      ${ordered.length ? ordered.map((t) => tagCard(t, seatId)).join('') : '<p class="empty">아직 태그가 없어요. 지도의 빈 곳을 눌러 첫 태그를 남겨주세요!</p>'}
     </div>
     <p class="hint">태그 작성은 지도에서 빈 곳을 터치하면 돼요</p>`;
 }
 
-function tagCard(t) {
+function tagCard(t, seatId) {
+  const isSeat = t.id === seatId; // 이번 주 1위 (리액션 O)
+  const isStamped = !!t.hofLocked; // 지난주 1위 박제 (리액션 X, §8·§9-3)
   const mine = myReaction(t.id);
-  const reactions = CONFIG.REACTION_TYPES.map((rt) => {
-    const isMine = mine?.type === rt.id;
-    return `<button class="react-btn ${isMine ? 'mine' : ''}" data-tag="${t.id}" data-react="${rt.id}">
-      ${icon(rt.icon, 15)} ${t.counts[rt.id]}</button>`;
-  }).join('');
+  // 박제는 리액션 버튼 제거 → 명예의 전당 라벨로 대체 (팝업과 동일 처리)
+  const reactions = isStamped
+    ? `<p class="hof-note">${icon('i-trophy', 14)} 명예의 전당 · 리액션할 수 없어요</p>`
+    : CONFIG.REACTION_TYPES.map((rt) => {
+        const isMine = mine?.type === rt.id;
+        return `<button class="react-btn ${isMine ? 'mine' : ''}" data-tag="${t.id}" data-react="${rt.id}">
+          ${icon(rt.icon, 15)} ${t.counts[rt.id]}</button>`;
+      }).join('');
   const origin = t.isResident
     ? `${icon(PIN_ICON.home, 13)} 주민`
     : `${icon(PIN_ICON.away, 13)} 방문`;
+  const rank = isSeat
+    ? `<span class="rank-badge seat">${icon('i-crown', 13)} 이번 주 1위</span>`
+    : isStamped
+    ? `<span class="rank-badge stamped">${icon('i-crown', 13)} 지난주 1위 · 명예의 전당</span>`
+    : '';
+  const cardCls = isSeat ? ' seat' : isStamped ? ' stamped' : '';
   return `
-    <article class="tag-card">
+    <article class="tag-card${cardCls}">
       <div class="tag-card-head">
-        <span class="tag-origin">${origin}</span>
+        <span class="card-meta">${origin}${rank}</span>
         <button class="report-btn" data-report="${t.id}">신고</button>
       </div>
       <p class="tag-text">${escapeHtml(t.text)}</p>
