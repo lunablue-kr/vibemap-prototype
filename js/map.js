@@ -172,11 +172,12 @@ function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP, seat = false) {
   const csz = { small: 11, mid: 13, big: 15 }[tier];
   const count = t.counts.total > 0 ? `${icon(t.topType.icon, csz)} ${t.counts.total} ` : '';
   const style = `transform: translate(${offsetX}px, calc(-50% + ${offsetY}px));`;
-  // 고정석(주간 1위) = 왕관 어깨 배지만 / 명예의 전당 박제(hofLocked) = 골드 테두리(.stamped)
+  // 고정석(주간 1위) = 왕관 배지 + 골드 크림 필 / 명예의 전당 박제(hofLocked) = 골드 테두리(.stamped)
+  const seatCls = seat ? ' seat' : '';
   const stampCls = t.hofLocked ? ' stamped' : '';
   const crown = seat ? `<span class="seat-crown">${icon('i-crown', csz + 3)}</span>` : '';
   return `<span class="tag-pin ${tier}" data-tag="${t.id}">${icon(pinId, psz)}</span>` +
-    `<span class="tag-marker ${tier}${stampCls}" data-tag="${t.id}" style="${style}">${crown}${count}${textHtml}</span>`;
+    `<span class="tag-marker ${tier}${seatCls}${stampCls}" data-tag="${t.id}" style="${style}">${crown}${count}${textHtml}</span>`;
 }
 
 // 줌별 구당 표시 상한 (§9-3): 전체 뷰 = 1개, 줌인할수록 상위 10개까지 점진 확대

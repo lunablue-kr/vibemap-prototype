@@ -74,7 +74,8 @@
   pointer-events: auto;
 }
 
-/* 고정석(주간 1위) = 왕관 어깨 배지만 (§7). 골드 테두리는 명예의 전당 박제(hofLocked) 전용 + 리액션 비활성(popup) */
+/* 고정석(주간 1위) = 왕관 배지 + 골드 크림 필(흰 태그와 색 차등, §7). 명예의 전당 박제(hofLocked) = 골드 테두리 + 리액션 비활성(popup) */
+.tag-marker.seat { background: var(--seat-fill); }
 .tag-marker.stamped { box-shadow: 0 0 0 2px var(--gold-deep), var(--sh-pill); }
 .tag-marker .seat-crown {
   position: absolute; top: -10px; right: -5px; line-height: 0;
