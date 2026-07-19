@@ -126,7 +126,7 @@ export function renderGuLabels() {
   });
 }
 
-// 태그 = 지점 핀(🏠/🚩, 정확한 좌표에 고정) + 오른쪽 박스([최다 리액션 + 총합] 텍스트 1줄)
+// 태그 = 지점 핀(🏠/🚩, 정확한 좌표에 고정) + 오른쪽 박스([최다 리액션 아이콘] 텍스트 1줄. 숫자 제거)
 // offsetY: 충돌 회피 시 박스만 밀리고 핀은 지점에 남음 (어느 지점의 태그인지 항상 명확)
 const PIN_GAP = 9; // 핀 중심 → 박스 간격(px)
 // offsetX: 핀 기준 박스 왼쪽 끝 위치(px). 배치 로직이 화면 안으로 클램프해서 전달
@@ -142,7 +142,8 @@ function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP, seat = false) {
   const pinId = t.isResident ? PIN_ICON.home : PIN_ICON.away;
   const psz = { small: 15, mid: 18, big: 21 }[tier];
   const csz = { small: 11, mid: 13, big: 15 }[tier];
-  const count = t.counts.total > 0 ? `${icon(t.topType.icon, csz)} ${t.counts.total} ` : '';
+  // 지도 라벨엔 최다 리액션 아이콘만(숫자 제거 — 사용자 결정. 정확한 수치는 팝업·구 상세에). 크기가 인기를 표현
+  const count = t.counts.total > 0 ? `${icon(t.topType.icon, csz)} ` : '';
   const style = `transform: translate(${offsetX}px, calc(-50% + ${offsetY}px));`;
   // 이번주1위(골드 필)·지난주1위 박제(라벤더 필) 둘 다 왕관 (design-brief §7 "크라운은 둘 다 골드 유지")
   const seatCls = seat ? ' seat' : '';
