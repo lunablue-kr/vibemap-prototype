@@ -35,7 +35,7 @@ export function addReaction(tagId, type) {
   // Phase 2: 명예의 전당 이월 태그 확정 시 tag.hofLocked 설정 (현재 설정 코드 없음)
   if (tag.hofLocked) return { ok: false, message: '명예의 전당 태그에는 리액션할 수 없어요.' };
   if (myReaction(tagId)) return { ok: false, message: '이미 리액션한 태그예요.' };
-  if (!canReact()) return { ok: false, message: '오늘 리액션 횟수를 다 썼어요.' };
+  if (!canReact()) return { ok: false, message: '오늘 리액션 횟수를 다 썼어요. 내일 다시 채워져요.' };
 
   const onsite = isOnsite(tag.guId);
   s.reactions.push({

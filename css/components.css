@@ -54,6 +54,11 @@
   z-index: 1;
 }
 .tag-pin .vibe-ic { filter: drop-shadow(0 1px 1.5px rgba(90, 40, 60, 0.28)); }
+/* 탭 영역 확장(투명 히트슬롭) — 시각 크기는 유지하되 엄지 정확도 보강.
+   빈 공간 터치=작성이 핵심 동선이라 과확장 금지(8px만) */
+.tag-pin::before, .tag-marker::before {
+  content: ''; position: absolute; inset: -8px; z-index: -1;
+}
 
 /* 태그 말풍선: 화이트 필, radius=높이/2, 핑크 틴트 그림자 (§7) */
 .tag-marker {

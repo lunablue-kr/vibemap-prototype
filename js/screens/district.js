@@ -74,9 +74,9 @@ function render() {
       <button data-sort="recent" class="${currentSort === 'recent' ? 'active' : ''}">최신순</button>
     </div>
     <div class="district-feed">
-      ${feed.length ? feed.map(tagCard).join('') : '<p class="empty">아직 태그가 없어요. 지도의 빈 곳을 눌러 첫 이야기를 남겨주세요!</p>'}
+      ${feed.length ? feed.map(tagCard).join('') : '<p class="empty">아직 태그가 없어요. 지도의 빈 곳을 눌러 첫 태그를 남겨주세요!</p>'}
     </div>
-    <p class="hint">글쓰기는 지도에서 빈 곳을 터치하면 돼요</p>`;
+    <p class="hint">태그 작성은 지도에서 빈 곳을 터치하면 돼요</p>`;
 }
 
 function tagCard(t) {

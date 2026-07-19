@@ -47,5 +47,5 @@ export function watchAdForBonus() {
   if (l.adBonus > 0) return { ok: false, message: '오늘은 이미 충전했어요.' };
   l.adBonus = CONFIG.AD_BONUS_POSTS;
   save();
-  return { ok: true, message: `글쓰기 ${CONFIG.AD_BONUS_POSTS}회가 충전되었어요.` };
+  return { ok: true, message: `태그 작성 ${CONFIG.AD_BONUS_POSTS}회가 충전되었어요.` };
 }

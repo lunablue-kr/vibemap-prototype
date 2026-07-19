@@ -16,7 +16,7 @@ export function renderRankingSheet() {
     return `
       <section class="rank-section">
         <h3>${icon(cat.icon, 18)} ${cat.label}</h3>
-        <ol class="rank-list">${rows || '<li class="empty">집계 대상 구가 없어요</li>'}</ol>
+        <ol class="rank-list">${rows || '<li class="empty">아직 순위에 오른 구가 없어요</li>'}</ol>
       </section>`;
   }).join('');
 

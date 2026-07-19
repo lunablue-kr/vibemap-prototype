@@ -53,7 +53,7 @@ export const CONFIG = {
     { id: 'hug', label: '따스한 동네', metric: 'ratio', icon: 'i-hug' },
     { id: 'hip', label: '힙한 동네', metric: 'ratio', icon: 'i-hip' }, // v0.5: 응원의 동네 교체
     { id: 'rising', label: '급상승 동네', metric: 'growth', icon: 'i-fire' },
-    { id: 'top', label: '최다 활동', metric: 'total', icon: 'i-crown' },
+    { id: 'top', label: '최다 활동 동네', metric: 'total', icon: 'i-crown' },
   ],
 
   // 랭킹 롤링 칩 (§9-0): Phase 1은 총점·급상승 2종 롤링

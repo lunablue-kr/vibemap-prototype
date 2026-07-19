@@ -52,7 +52,7 @@ export function renderMySheet() {
       <h3>홈 지역구</h3>
       <p class="hint">홈 지역구에는 어디서든 태그를 남길 수 있어요.<br />
         ${s.user.homeGuId
-          ? `변경: 그 구에 있을 때 1회 위치 확인 · 쿨다운 28일${left > 0 ? ` (남은 ${left}일)` : ' (변경 가능)'}`
+          ? `그 구에서 한 번 위치를 확인하면 바꿀 수 있어요 · 다음 변경까지 28일${left > 0 ? ` (남은 ${left}일)` : ' (변경 가능)'}`
           : '처음 한 번은 자유롭게 설정할 수 있어요'}</p>
       <select id="home-gu-select">
         <option value="" ${!s.user.homeGuId ? 'selected' : ''}>선택 안 함</option>${options}
@@ -60,11 +60,11 @@ export function renderMySheet() {
     </div>
     <div class="my-section">
       <h3>오늘의 활동</h3>
-      <p>오늘 남은 횟수 — 글쓰기 ${l.postsLeft}회 · 리액션 ${l.reactionsLeft}회</p>
-      <button id="watch-ad-btn" class="btn" ${l.adUsed ? 'disabled' : ''}>광고 보고 글쓰기 3회 충전</button>
+      <p>오늘 남은 횟수 · 태그 작성 ${l.postsLeft}회 · 리액션 ${l.reactionsLeft}회</p>
+      <button id="watch-ad-btn" class="btn" ${l.adUsed ? 'disabled' : ''}>광고 보고 태그 작성 3회 충전</button>
     </div>
     <div class="my-section placeholder">
       <h3>뱃지 · 포인트 · 공유 카드</h3>
-      <p class="hint">Phase 2에서 열려요</p>
+      <p class="hint">곧 만나볼 수 있어요</p>
     </div>`;
 }

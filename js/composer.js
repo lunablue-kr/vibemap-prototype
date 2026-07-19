@@ -31,18 +31,18 @@ export function openComposer(guId, lat, lng) {
 
   // 고지문 (§9-1): 원정 시 "지금 계신 동네…" + 공통 "특정 가게…"
   const notice = eligible.ok && !eligible.isResident
-    ? '지금 계신 동네에 대한 이야기를 남겨주세요'
+    ? '지금 계신 동네에 대한 태그를 남겨주세요'
     : '';
   const body = !eligible.ok
     ? `<p class="composer-blocked">${eligible.message}</p>`
     : !canPost()
-    ? `<p class="composer-blocked">오늘 글쓰기 횟수를 다 썼어요. 광고를 보면 3회 충전돼요.</p>`
+    ? `<p class="composer-blocked">오늘 태그 작성 횟수를 다 썼어요. 광고를 보면 3회 충전돼요.</p>`
     : `<p class="hint">${notice ? notice + ' · ' : ''}특정 가게에 대한 부정적 후기는 삭제될 수 있어요</p>
        <textarea id="composer-input" rows="2" maxlength="${CONFIG.TAG_MAX_LENGTH}"
          placeholder="이 동네의 지금 분위기를 한 줄로"></textarea>
        <div class="composer-foot">
          <span id="composer-count" class="hint">0/${CONFIG.TAG_MAX_LENGTH}</span>
-         <button id="composer-submit" class="btn primary">남기기</button>
+         <button id="composer-submit" class="btn primary">태그 남기기</button>
        </div>`;
 
   el.innerHTML = `

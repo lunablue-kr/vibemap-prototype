@@ -17,7 +17,7 @@ export function cooldownLeftDays() {
 // 반환: { ok, message? }
 export function canSetHome(guId) {
   const s = getState();
-  if (!guId) return { ok: false, message: '해제는 지원하지 않아요.' }; // 홈 1개 유지
+  if (!guId) return { ok: false, message: '홈 지역구는 변경만 가능해요.' }; // 홈 1개 유지
   if (s.user.homeGuId === guId) return { ok: false, message: '이미 홈 지역구예요.' };
   if (!s.user.homeGuId) return { ok: true }; // 최초 설정: 자유
 

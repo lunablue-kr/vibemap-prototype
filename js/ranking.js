@@ -81,7 +81,7 @@ export function rollingChips() {
     return {
       categoryId: cat.id,
       icon: cat.icon, // vibe-icons.svg 심볼 id
-      guName: first ? first.name : '—',
+      guName: first ? first.name : '집계 중',
     };
   });
 }
