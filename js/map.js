@@ -321,6 +321,12 @@ export function updateSingleTag(tagId) {
 const TIER_ORDER = { small: 0, mid: 1, big: 2 };
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
+// 시그니처 "감정 스밈" 파동 파라미터 (design-brief.md §2 확정표).
+// 상승·하강은 base.css .leaflet-interactive transition(fill-opacity 0.3s ease)가 담당,
+// delta=순간 짙어지는 양, hold=유지 후 원복까지(총 연출 ≈ 0.3s+hold+0.3s, §2 "0.6~1s 이내").
+const SEEP_PROMOTE = { delta: 0.18, hold: 420 }; // 승격 순간 파동
+const SEEP_CELEBRATE = { delta: 0.28, hold: 700 }; // 첫 태그 축하(더 짙게·길게, §4)
+
 // 말풍선 탱글 팝 (재발동 위해 클래스 리셋 후 재부여)
 function popMarker(marker) {
   const el = marker?.getElement?.()?.querySelector?.('.tag-marker');
@@ -342,7 +348,7 @@ function pulseDistrict(guId, delta, ms) {
 function emotionSeep(marker, guId) {
   if (reduceMotion) return;
   popMarker(marker);
-  pulseDistrict(guId, 0.18, 420);
+  pulseDistrict(guId, SEEP_PROMOTE.delta, SEEP_PROMOTE.hold);
 }
 
 // 첫 태그 축하 (§4 초기 활성화): 시그니처 "감정 스밈"을 승격보다 크게(더 짙게·길게).
@@ -351,7 +357,7 @@ export function celebrateTag(tagId, guId) {
   if (reduceMotion) return;
   const entry = markersByTagId[tagId];
   if (entry) popMarker(entry.marker);
-  pulseDistrict(guId, 0.28, 700); // 승격(+0.18)보다 강한 파동
+  pulseDistrict(guId, SEEP_CELEBRATE.delta, SEEP_CELEBRATE.hold); // 승격보다 강한 파동
 }
 
 export function refreshMap() {
