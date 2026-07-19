@@ -61,7 +61,8 @@ function renderStep1() {
 }
 
 function renderStep2() {
-  const chips = CONFIG.ORIGIN_CITIES
+  const chips = CONFIG.ORIGIN_CITIES.slice()
+    .sort((a, b) => (a.id === 'etc' ? 1 : b.id === 'etc' ? -1 : a.name.localeCompare(b.name, 'ko'))) // 가나다, '그 외' 마지막
     .map((c) => `<button class="onboard-city" data-city="${c.id}">${c.name}</button>`)
     .join('');
   paint(`
@@ -81,7 +82,7 @@ function renderHomePicker() {
   paint(`
     <div class="onboard-card">
       <h2 class="onboard-title">우리 동네는 어디예요?</h2>
-      <p class="onboard-sub">홈 지역구에는 어디서든 태그를 남길 수 있어요. 나중에 바꿀 수 있어요.</p>
+      <p class="onboard-sub">홈 지역구에는 어디서든 태그를 남길 수 있어요.<br />바꿀 땐 그 동네에 가서 한 번 확인하면 되고, 28일에 한 번 옮길 수 있어요.</p>
       <div class="onboard-cities scroll">${gus}</div>
     </div>`);
 }

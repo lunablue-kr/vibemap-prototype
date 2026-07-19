@@ -400,6 +400,7 @@
 /* 마스터태그 칭호 (§12 (A) masterTag — 플래그 on 시 지도 라벨 뒤 노출) */
 .gu-master-title { display: block; font-style: normal; font-size: 10px; color: var(--accent); font-family: var(--font-display); }
 .cta-line { font-size: 13px; color: var(--accent); margin: 8px 0 4px; line-height: 1.5; }
+.progress-line { font-family: var(--font-display); font-size: 16px; color: var(--accent); margin: 8px 0; }
 
 /* ── 온보딩 (§5 첫 실행 분기) — 필수 플로우 카드(프로모 바텀시트 아님) ── */
 #onboarding {

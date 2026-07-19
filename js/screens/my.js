@@ -12,13 +12,12 @@ import { computeBadges } from './../badges.js';
 
 let onDataChange = null;
 
-// 마이 아이콘 = 홈 구 이니셜 1자 원형 뱃지 (design-brief.md §7, 프로필 사진 없음)
+// 마이 아이콘 = 항시 'MY' (사용자 결정 — 홈 구 이니셜 대신 고정. 홈 유무는 배경색으로만 구분)
 export function renderMyIcon() {
   const s = getState();
-  const home = s.user.homeGuId ? getDistrict(s.user.homeGuId) : null;
   const btn = document.getElementById('my-icon');
-  btn.textContent = home ? Array.from(home.name)[0] : 'MY'; // 홈 미설정 시 'MY'
-  btn.classList.toggle('no-home', !home);
+  btn.textContent = 'MY';
+  btn.classList.toggle('no-home', !s.user.homeGuId);
 }
 
 export function initMySheet(handlers) {
@@ -58,25 +57,33 @@ export function renderMySheet() {
     .join('');
 
   const origin = s.user.originCity ? cityName(s.user.originCity) : null;
+  const originVotes = origin ? s.regionVotes.filter((v) => v.cityId === s.user.originCity).length : 0;
+  const threshold = CONFIG.REGION_OPEN_THRESHOLD;
+
+  // 비서울(무소속 구경꾼)은 서울 홈 선택 대신 "내 지역" 현황을 보여준다 (§5). 서울 유저만 홈 지역구 관리.
+  const homeOrRegion = origin
+    ? `<div class="my-section region-note">
+        <h3>내 지역</h3>
+        <p class="hint">${origin} · 열리면 가장 먼저 알려드릴게요.</p>
+        <p class="progress-line">${originVotes.toLocaleString('ko-KR')} / ${threshold.toLocaleString('ko-KR')}명 참여 중</p>
+        <p class="hint">그때까지 리액션은 어디서든, 서울에 오면 그 동네에 태그도 남길 수 있어요.</p>
+      </div>`
+    : `<div class="my-section">
+        <h3>홈 지역구</h3>
+        <p class="hint">홈 지역구에는 어디서든 태그를 남길 수 있어요.<br />
+          ${s.user.homeGuId
+            ? `그 구에서 한 번 위치를 확인하면 바꿀 수 있어요 · 다음 변경까지 28일${left > 0 ? ` (남은 ${left}일)` : ' (변경 가능)'}`
+            : '처음 한 번은 자유롭게 설정할 수 있어요'}</p>
+        ${!s.user.homeGuId ? '<p class="cta-line">아직 홈이 없어요. 우리 동네를 정하고 첫 태그를 남겨보세요!</p>' : ''}
+        <select id="home-gu-select">
+          <option value="" ${!s.user.homeGuId ? 'selected' : ''}>선택 안 함</option>${options}
+        </select>
+      </div>`;
 
   document.getElementById('sheet-my').innerHTML = `
     <div class="sheet-grab"></div>
     <div class="sheet-title-row"><h2>마이</h2><button data-close-sheet aria-label="닫기">✕</button></div>
-    ${origin ? `<div class="my-section region-note">
-      <h3>내 지역</h3>
-      <p class="hint">${origin} · 열리면 가장 먼저 알려드릴게요. 그때까지 리액션은 어디서든 남길 수 있어요. 서울에 오면 그 동네에 태그도 남겨보세요!</p>
-    </div>` : ''}
-    <div class="my-section">
-      <h3>홈 지역구</h3>
-      <p class="hint">홈 지역구에는 어디서든 태그를 남길 수 있어요.<br />
-        ${s.user.homeGuId
-          ? `그 구에서 한 번 위치를 확인하면 바꿀 수 있어요 · 다음 변경까지 28일${left > 0 ? ` (남은 ${left}일)` : ' (변경 가능)'}`
-          : '처음 한 번은 자유롭게 설정할 수 있어요'}</p>
-      ${!s.user.homeGuId && !origin ? '<p class="cta-line">아직 홈이 없어요. 우리 동네를 정하고 첫 태그를 남겨보세요!</p>' : ''}
-      <select id="home-gu-select">
-        <option value="" ${!s.user.homeGuId ? 'selected' : ''}>선택 안 함</option>${options}
-      </select>
-    </div>
+    ${homeOrRegion}
     <div class="my-section">
       <h3>오늘의 활동</h3>
       <p>오늘 남은 횟수 · 태그 작성 ${l.postsLeft}회 · 리액션 ${l.reactionsLeft}회</p>
