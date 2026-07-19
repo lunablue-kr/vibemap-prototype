@@ -1,7 +1,8 @@
 {
  "_meta": {
   "purpose": "프로토타입 시연 전용 (DEMO). 출시 시드로 사용 금지",
-  "note": "리액션 수치가 자리싸움·랭킹·부문 시연을 위해 과장되어 있음 — 설계서 §13 출시 시드 규칙(일부 태그만 2~3개, 부풀리기 금지) 초과. 출시용은 seed-tags.json 참조"
+  "note": "리액션 수치가 자리싸움·랭킹·부문 시연을 위해 과장되어 있음 — 설계서 §13 출시 시드 규칙(일부 태그만 2~3개, 부풀리기 금지) 초과. 출시용은 seed-tags.json 참조",
+  "test_hofLocked": "박제(지난주 1위) 렌더 테스트용 3건 — 출시 seed엔 없음"
  },
  "districts": {
   "강남구": {
@@ -278,7 +279,8 @@
    "reactions": {
     "funny": 10,
     "like": 4
-   }
+   },
+   "hofLocked": true
   },
   {
    "gu": "강남구",
@@ -699,7 +701,8 @@
    "reactions": {
     "hip": 9,
     "like": 3
-   }
+   },
+   "hofLocked": true
   },
   {
    "gu": "마포구",
@@ -805,7 +808,8 @@
    "reactions": {
     "hip": 9,
     "like": 4
-   }
+   },
+   "hofLocked": true
   },
   {
    "gu": "성동구",

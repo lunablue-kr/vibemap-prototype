@@ -60,6 +60,7 @@ export async function initStore() {
     guId: byName[t.gu],
     lat: t.lat, lng: t.lng, text: t.text,
     isResident: t.resident,
+    hofLocked: !!t.hofLocked, // 명예의 전당 박제(지난주 1위) — 리액션 불가
     state: 'public',
     createdAt: Date.now() - t.daysAgo * 86400000,
   }));

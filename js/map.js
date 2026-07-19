@@ -222,6 +222,8 @@ export function renderTags() {
         const seat = list.find((t) => t.id === topId);
         if (seat) slice.push(seat); // 고정석 예외 (규칙 4)
       }
+      // 박제(지난주 1위, hofLocked)도 cap·prefix 무관 항상 표시 (§9-3)
+      list.forEach((t) => { if (t.hofLocked && !slice.some((x) => x.id === t.id)) slice.push(t); });
       return slice;
     })
     .sort((a, b) => b.counts.total - a.counts.total || a.guRank - b.guRank);
@@ -249,8 +251,9 @@ export function renderTags() {
   };
 
   shown.forEach((t) => {
-    const isSeat = topByGu[t.guId] === t.id; // 고정석: blockedGu·생략 규칙의 예외
-    if (blockedGu.has(t.guId) && !isSeat) {
+    const isSeat = topByGu[t.guId] === t.id;
+    const pinned = isSeat || t.hofLocked; // 고정석·박제: blockedGu·생략 규칙의 예외
+    if (blockedGu.has(t.guId) && !pinned) {
       window.__labelDrops?.push({ id: t.id, gu: t.guId, rank: t.guRank, reason: 'blocked-prefix' });
       return;
     }
@@ -288,8 +291,8 @@ export function renderTags() {
     }
     if (!placement) {
       // 최대 줌 부근: 생략 금지 — 자리 없으면 작은 크기·겹침 허용으로라도 표시
-      // 고정석도 동일 (규칙 4: 항상 표시)
-      if (zoom >= map.getMaxZoom() - 0.5 || isSeat) {
+      // 고정석·박제도 동일 (규칙 4: 항상 표시)
+      if (zoom >= map.getMaxZoom() - 0.5 || pinned) {
         const tier = 'small';
         const box = labelBox(t, tier);
         const { tx, bx } = placeBoxX(pp, box);
