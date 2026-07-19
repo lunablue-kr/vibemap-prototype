@@ -82,24 +82,39 @@ body {
 }
 #toast.show { opacity: 1; }
 
-/* 현장 리액션 순간 피드백 "현장 ×2!" (§9-1, v0.5.2) — 누른 자리 위로 팝 후 소멸 */
-.onsite-pop {
+/* 리액션 순간 피드백 (§9-1) — 누른 리액션 이름(아이콘+이름)이 버튼 위로 팝 후 소멸.
+   현장이면 액센트 필 강조. */
+.reaction-pop {
   position: fixed;
   transform: translate(-50%, -100%) scale(0.8);
-  background: var(--accent);
-  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  color: var(--accent);
   font-family: var(--font-display);
   font-size: 12.5px;
-  padding: 5px 12px;
+  padding: 6px 12px;
   border-radius: 999px;
-  box-shadow: 0 3px 10px rgba(236, 100, 164, 0.4);
+  box-shadow: var(--sh-card);
   z-index: 3200;
   pointer-events: none;
   opacity: 0;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s;
+  white-space: nowrap;
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.24s;
 }
-.onsite-pop.show { transform: translate(-50%, -130%) scale(1); opacity: 1; }
+.reaction-pop.onsite { background: var(--accent); color: #fff; }
+.reaction-pop.show { transform: translate(-50%, -135%) scale(1); opacity: 1; }
+
+/* 반영된 리액션 버튼 탱글 팝 */
+@keyframes react-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+.react-btn.reacted { animation: react-bump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
 @media (prefers-reduced-motion: reduce) {
-  .onsite-pop { transition: opacity 0.2s; }
+  .reaction-pop { transition: opacity 0.2s; }
+  .react-btn.reacted { animation: none; }
 }

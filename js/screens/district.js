@@ -6,7 +6,7 @@ import { districtFeed } from './../tags.js';
 import { addReaction, myReaction } from './../reactions.js';
 import { reportTag, REPORT_REASONS } from './../moderation.js';
 import { getTossKey } from './../mock-toss.js';
-import { toast, escapeHtml, openSheet, onsitePop } from './../ui.js';
+import { toast, escapeHtml, openSheet, reactionPop } from './../ui.js';
 import { icon, PIN_ICON } from './../icons.js';
 import { weeklyTopTagIdByGu } from './../ranking.js';
 
@@ -36,11 +36,16 @@ function handleClick(e) {
 
   const reactBtn = e.target.closest('[data-react]');
   if (reactBtn) {
-    const r = addReaction(reactBtn.dataset.tag, reactBtn.dataset.react);
+    const tagId = reactBtn.dataset.tag;
+    const type = reactBtn.dataset.react;
+    const r = addReaction(tagId, type);
     if (!r.ok) { toast(r.message); return; }
-    if (r.isOnsite) onsitePop(reactBtn); // 현장 ×2! 순간 피드백 (§9-1)
+    const rt = CONFIG.REACTION_TYPES.find((x) => x.id === type);
+    reactionPop(reactBtn, rt, r.isOnsite); // 누른 리액션 이름 + 현장 ×2 피드백
     render();
-    onDataChange?.(reactBtn.dataset.tag);
+    const b = document.querySelector(`#sheet-district [data-tag="${tagId}"][data-react="${type}"]`);
+    if (b) { b.classList.remove('reacted'); void b.offsetWidth; b.classList.add('reacted'); }
+    onDataChange?.(tagId);
     return;
   }
 

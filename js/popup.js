@@ -6,7 +6,7 @@ import { addReaction, myReaction, reactionCounts } from './reactions.js';
 import { reportTag, REPORT_REASONS } from './moderation.js';
 import { getTossKey } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
-import { toast, escapeHtml, viewportBox, onsitePop } from './ui.js';
+import { toast, escapeHtml, viewportBox, reactionPop } from './ui.js';
 import { icon, REACTION_ICON, PIN_ICON } from './icons.js';
 import { weeklyTopTagIdByGu } from './ranking.js';
 
@@ -109,10 +109,15 @@ function handleClick(e) {
   }
   const reactBtn = e.target.closest('[data-react]');
   if (reactBtn) {
-    const r = addReaction(currentTagId, reactBtn.dataset.react);
+    const type = reactBtn.dataset.react;
+    const r = addReaction(currentTagId, type);
     if (!r.ok) { toast(r.message); return; }
-    if (r.isOnsite) onsitePop(reactBtn); // 현장 ×2! 순간 피드백 (§9-1)
+    const rt = CONFIG.REACTION_TYPES.find((x) => x.id === type);
+    reactionPop(reactBtn, rt, r.isOnsite); // 누른 리액션 이름 + 현장 ×2 피드백 (§9-1)
     render();
+    // 방금 반영된 버튼 탱글 팝
+    const b = document.querySelector(`#tag-popup [data-react="${type}"]`);
+    if (b) { b.classList.remove('reacted'); void b.offsetWidth; b.classList.add('reacted'); }
     onChange?.(currentTagId);
     return;
   }

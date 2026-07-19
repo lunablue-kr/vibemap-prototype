@@ -1,4 +1,6 @@
 // 공용 UI 유틸: 토스트, 시트 열기/닫기 (v0.5 IA: 하단 탭 없음, 지도 위 시트 구조)
+import { icon } from './icons.js';
+
 export function toast(message) {
   const el = document.getElementById('toast');
   el.textContent = message;
@@ -7,12 +9,12 @@ export function toast(message) {
   el._timer = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-// 현장 리액션 순간 피드백 (§9-1, v0.5.2): 누르는 순간 "현장 ×2!" 액센트 필이 팝 후 소멸.
-// 상시 아이콘(📍) 없이 현장 2배를 알림. near = 기준 요소(눌린 버튼)면 그 위에 띄움.
-export function onsitePop(near) {
+// 리액션 순간 피드백 (§9-1): 누른 리액션 이름(rt.done)을 아이콘과 함께 눌린 버튼 위로 팝.
+// 현장(§5)이면 "· 현장 ×2!" 병합. rt = REACTION_TYPES 항목, near = 눌린 버튼.
+export function reactionPop(near, rt, isOnsite) {
   const el = document.createElement('div');
-  el.className = 'onsite-pop';
-  el.textContent = '현장 ×2!';
+  el.className = 'reaction-pop' + (isOnsite ? ' onsite' : '');
+  el.innerHTML = `${icon(rt.icon, 15)} ${rt.done}${isOnsite ? ' · 현장 ×2!' : ''}`;
   document.body.appendChild(el);
   const r = near?.getBoundingClientRect?.();
   if (r) {
@@ -23,7 +25,7 @@ export function onsitePop(near) {
     el.style.top = '38%';
   }
   requestAnimationFrame(() => el.classList.add('show'));
-  setTimeout(() => el.remove(), 800);
+  setTimeout(() => el.remove(), 1000);
 }
 
 const SHEETS = ['district', 'ranking', 'my'];

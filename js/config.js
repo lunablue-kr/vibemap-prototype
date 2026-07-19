@@ -11,11 +11,12 @@ export const CONFIG = {
 
   // 리액션 4종 (v0.5 개편: 💪힘내 삭제 → ✨힙해요)
   // icon = vibe-icons.svg 심볼 id (v0.5.2: 자체 제작 SVG로 교체, 이모지는 약칭 폴백)
+  // done = 리액션 누른 순간 피드백 팝에 뜨는 표시 이름 (해요체 통일)
   REACTION_TYPES: [
-    { id: 'like', label: '공감', emoji: '👍', icon: 'i-like' },
-    { id: 'funny', label: '웃겨요', emoji: '😂', icon: 'i-funny' },
-    { id: 'hug', label: '위로', emoji: '🫂', icon: 'i-hug' },
-    { id: 'hip', label: '힙해요', emoji: '✨', icon: 'i-hip' },
+    { id: 'like', label: '공감', emoji: '👍', icon: 'i-like', done: '공감해요' },
+    { id: 'funny', label: '웃겨요', emoji: '😂', icon: 'i-funny', done: '웃겨요' },
+    { id: 'hug', label: '위로', emoji: '🫂', icon: 'i-hug', done: '위로해요' },
+    { id: 'hip', label: '힙해요', emoji: '✨', icon: 'i-hip', done: '힙해요' },
   ],
   ONSITE_MULTIPLIER: 2,
   WEEKLY_REACTION_SCORE_CAP: 50, // 태그당 주간 점수 반영 상한
