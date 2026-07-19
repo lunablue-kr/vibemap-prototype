@@ -387,6 +387,17 @@
 .my-section .btn { margin-top: 10px; }
 .my-section.placeholder { opacity: 0.55; }
 .my-section.region-note .hint { color: var(--ink-soft); }
+
+/* 뱃지 확장 (§12 (A) badgeExpansion — 플래그 on 시 노출) */
+.badge-grid { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.badge-item { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 14px 10px; border-radius: 14px; background: var(--surface-soft); }
+.badge-item.locked { opacity: 0.5; }
+.badge-item svg { width: 28px; height: 28px; }
+.badge-label { font-family: var(--font-display); font-size: 13px; color: var(--ink); }
+.badge-hint { font-size: 11px; color: var(--ink-soft); line-height: 1.4; }
+.badge-item.earned .badge-hint { color: var(--accent); }
+/* 마스터태그 칭호 (§12 (A) masterTag — 플래그 on 시 지도 라벨 뒤 노출) */
+.gu-master-title { display: block; font-style: normal; font-size: 10px; color: var(--accent); font-family: var(--font-display); }
 .cta-line { font-size: 13px; color: var(--accent); margin: 8px 0 4px; line-height: 1.5; }
 
 /* ── 온보딩 (§5 첫 실행 분기) — 필수 플로우 카드(프로모 바텀시트 아님) ── */

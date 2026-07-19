@@ -9,6 +9,7 @@ import { tagScreenPoint } from './map.js';
 import { toast, escapeHtml, viewportBox, reactionPop } from './ui.js';
 import { icon, PIN_ICON } from './icons.js';
 import { weeklyTopTagIdByGu } from './ranking.js';
+import { isHof } from './phase2.js';
 
 let currentTagId = null;
 let onChange = null; // 리액션·신고 후 (지도 단일 갱신 등)
@@ -70,7 +71,7 @@ function render() {
   const mine = myReaction(tag.id);
 
   const isSeat = weeklyTopTagIdByGu()[tag.guId] === tag.id; // 현재 주 1위 고정석
-  const isStamped = !!tag.hofLocked; // 지난주 1위 박제 (명예의 전당)
+  const isStamped = isHof(tag); // 지난주 1위 박제 (명예의 전당) — hallOfFame 플래그 게이트
 
   // 박제(hofLocked)는 리액션 불가 — 버튼 자체를 제거 (설계서 §8·§9-3, 공감 인플레 방지)
   const reactions = isStamped

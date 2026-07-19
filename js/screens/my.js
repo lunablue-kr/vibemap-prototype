@@ -7,6 +7,8 @@ import { setHome, cooldownLeftDays } from './../home.js';
 import { cityName } from './../onboarding.js';
 import { shareInvite } from './../mock-toss.js';
 import { toast } from './../ui.js';
+import { icon } from './../icons.js';
+import { computeBadges } from './../badges.js';
 
 let onDataChange = null;
 
@@ -81,8 +83,23 @@ export function renderMySheet() {
       <button id="watch-ad-btn" class="btn" ${l.adUsed ? 'disabled' : ''}>광고 보고 태그 ${CONFIG.AD_BONUS_POSTS}회 충전받기</button>
       ${CONFIG.FLAGS.shareReward ? `<button id="share-invite-btn" class="btn accent" ${l.shareUsed ? 'disabled' : ''}>친구 초대하고 태그 ${CONFIG.SHARE_REWARD_POSTS}회 충전받기</button>` : ''}
     </div>
-    <div class="my-section placeholder">
+    ${CONFIG.FLAGS.badgeExpansion ? badgeSection() : `<div class="my-section placeholder">
       <h3>뱃지 · 포인트 · 공유 카드</h3>
       <p class="hint">곧 만나볼 수 있어요</p>
+    </div>`}`;
+}
+
+// 뱃지 확장 (§12 (A)): badgeExpansion 플래그 on일 때만 획득/미획득 그리드로 교체.
+// off면 기존 placeholder 유지. 라벨·힌트는 해요체 임시 초안(카피 감수 대상).
+function badgeSection() {
+  const items = computeBadges().map((b) => `
+    <li class="badge-item ${b.earned ? 'earned' : 'locked'}">
+      ${icon(b.icon, 28)}
+      <span class="badge-label">${b.label}</span>
+      <span class="badge-hint">${b.earned ? '받았어요' : b.hint}</span>
+    </li>`).join('');
+  return `<div class="my-section">
+      <h3>내 뱃지</h3>
+      <ul class="badge-grid">${items}</ul>
     </div>`;
 }

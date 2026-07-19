@@ -9,6 +9,7 @@ import { getTossKey } from './../mock-toss.js';
 import { toast, escapeHtml, openSheet, reactionPop } from './../ui.js';
 import { icon, PIN_ICON } from './../icons.js';
 import { weeklyTopTagIdByGu } from './../ranking.js';
+import { isHof } from './../phase2.js';
 
 let currentGuId = null;
 let currentSort = 'popular';
@@ -72,8 +73,8 @@ function render() {
 
   // 고정석·박제는 정렬과 무관하게 리스트 최상단 고정 (지도 §9-3 우선 노출을 리스트에도 반영)
   const seatTag = feed.find((t) => t.id === seatId);
-  const stamped = feed.filter((t) => t.hofLocked && t.id !== seatId);
-  const rest = feed.filter((t) => t.id !== seatId && !t.hofLocked);
+  const stamped = feed.filter((t) => isHof(t) && t.id !== seatId);
+  const rest = feed.filter((t) => t.id !== seatId && !isHof(t));
   const ordered = [seatTag, ...stamped, ...rest].filter(Boolean);
 
   document.getElementById('sheet-district').innerHTML = `
@@ -95,7 +96,7 @@ function render() {
 
 function tagCard(t, seatId) {
   const isSeat = t.id === seatId; // 이번 주 1위 (리액션 O)
-  const isStamped = !!t.hofLocked; // 지난주 1위 박제 (리액션 X, §8·§9-3)
+  const isStamped = isHof(t); // 지난주 1위 박제 (리액션 X, §8·§9-3) — hallOfFame 플래그 게이트
   const mine = myReaction(t.id);
   // 박제는 리액션 버튼 제거 → 명예의 전당 라벨로 대체 (팝업과 동일 처리)
   const reactions = isStamped

@@ -10,6 +10,7 @@ import { weeklyTopTagIdByGu } from './ranking.js';
 import { escapeHtml } from './ui.js';
 import { icon, PIN_ICON } from './icons.js';
 import { buildPalette, levelFill, levelEdge } from './palette.js';
+import { isHof, masterTitle } from './phase2.js';
 
 let map = null;
 let geoLayer = null;
@@ -107,12 +108,15 @@ export function renderGuLabels() {
   const near = map.getZoom() >= CONFIG.MAP_NEAR_ZOOM;
   if (!near) return;
   getState().districts.forEach((d) => {
+    // 마스터태그 칭호 (§8): masterTag 플래그 && 수상 이력 있을 때만. 프로토타입엔 데이터가 없어
+    // masterTitle이 null → 아무것도 안 붙음 (서버 주간 배치가 state.weeklyAwards를 채운다).
+    const title = CONFIG.FLAGS.masterTag ? masterTitle(d.guId) : null;
     guLabelGroup.addLayer(
       L.marker(d.centroid, {
         interactive: false,
         keyboard: false,
         icon: L.divIcon({
-          html: `<span class="gu-label ${near ? 'near' : ''}">Lv.${d.level} ${d.name}</span>`,
+          html: `<span class="gu-label ${near ? 'near' : ''}">Lv.${d.level} ${d.name}${title ? `<em class="gu-master-title">${escapeHtml(title)}</em>` : ''}</span>`,
           className: 'gu-label-wrap',
           iconSize: null,
         }),
@@ -142,8 +146,8 @@ function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP, seat = false) {
   const style = `transform: translate(${offsetX}px, calc(-50% + ${offsetY}px));`;
   // 이번주1위(골드 필)·지난주1위 박제(라벤더 필) 둘 다 왕관 (design-brief §7 "크라운은 둘 다 골드 유지")
   const seatCls = seat ? ' seat' : '';
-  const stampCls = t.hofLocked ? ' stamped' : '';
-  const crown = (seat || t.hofLocked) ? `<span class="seat-crown">${icon('i-crown', csz + 3)}</span>` : '';
+  const stampCls = isHof(t) ? ' stamped' : '';
+  const crown = (seat || isHof(t)) ? `<span class="seat-crown">${icon('i-crown', csz + 3)}</span>` : '';
   return `<span class="tag-pin ${tier}" data-tag="${t.id}">${icon(pinId, psz)}</span>` +
     `<span class="tag-marker ${tier}${seatCls}${stampCls}" data-tag="${t.id}" style="${style}">${crown}${count}${textHtml}</span>`;
 }
@@ -190,8 +194,8 @@ export function renderTags() {
         const seat = list.find((t) => t.id === topId);
         if (seat) slice.push(seat); // 고정석 예외 (규칙 4)
       }
-      // 박제(지난주 1위, hofLocked)도 cap·prefix 무관 항상 표시 (§9-3)
-      list.forEach((t) => { if (t.hofLocked && !slice.some((x) => x.id === t.id)) slice.push(t); });
+      // 박제(지난주 1위, hofLocked)도 cap·prefix 무관 항상 표시 (§9-3) — hallOfFame 플래그 게이트
+      list.forEach((t) => { if (isHof(t) && !slice.some((x) => x.id === t.id)) slice.push(t); });
       return slice;
     })
     .sort((a, b) => b.counts.total - a.counts.total || a.guRank - b.guRank);
@@ -220,7 +224,7 @@ export function renderTags() {
 
   shown.forEach((t) => {
     const isSeat = topByGu[t.guId] === t.id;
-    const pinned = isSeat || t.hofLocked; // 고정석·박제: blockedGu·생략 규칙의 예외
+    const pinned = isSeat || isHof(t); // 고정석·박제: blockedGu·생략 규칙의 예외
     if (blockedGu.has(t.guId) && !pinned) {
       window.__labelDrops?.push({ id: t.id, gu: t.guId, rank: t.guRank, reason: 'blocked-prefix' });
       return;
@@ -280,7 +284,7 @@ export function renderTags() {
 
     const marker = L.marker(anchor, {
       icon: L.divIcon({ html: tagHtml(t, displayTier, offsetY, placement.tx, isSeat), className: 'tag-marker-wrap', iconSize: null }),
-      zIndexOffset: (isSeat || t.hofLocked) ? 1500 : t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
+      zIndexOffset: (isSeat || isHof(t)) ? 1500 : t.tier === 'big' ? 1000 : t.tier === 'mid' ? 500 : 0,
     });
     marker.on('click', () => handlers.onTagClick?.(t.id));
     tagLayerGroup.addLayer(marker);

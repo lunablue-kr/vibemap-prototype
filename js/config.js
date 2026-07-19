@@ -43,6 +43,10 @@ export const CONFIG = {
   // 신고 (§7)
   REPORT_BLIND_COUNT: 3,
 
+  // 뱃지 획득 임계값 (§8 보상·§12 (A) 뱃지 확장) — badgeExpansion 플래그 on일 때만 사용
+  BADGE_GU_POST_COUNT: 10, // 한 구에 이 개수만큼 태그 → 동네 터줏대감(i-crown)
+  BADGE_DISTINCT_GU: 5, // 이 개수만큼 서로 다른 구에 태그 → 동네 탐험가(i-flag)
+
   // 홈 지역구 (§5 확정): 최초 자유, 변경은 현지 GPS 1회 + 쿨다운
   HOME_CHANGE_COOLDOWN_DAYS: 28,
 

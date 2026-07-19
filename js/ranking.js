@@ -70,13 +70,17 @@ function ratio(stat, type) {
   return stat.reactionTotals.total > 0 ? stat.reactionTotals[type] / stat.reactionTotals.total : 0;
 }
 
-export function activeCategories() {
+// 활성 부문 목록. Phase 2 게이트: 랭킹 시트는 FLAGS.fiveCategories, 롤링 칩은 FLAGS.chip5로
+// 각각 독립 판정 (chip:true면 칩 기준). 플래그 off면 LAUNCH_CATEGORIES(총점·급상승 2종)만.
+export function activeCategories({ chip = false } = {}) {
+  const expand = chip ? CONFIG.FLAGS.chip5 : CONFIG.FLAGS.fiveCategories;
+  if (expand) return CONFIG.ALL_CATEGORIES; // 5부문 전체
   return CONFIG.ALL_CATEGORIES.filter((c) => CONFIG.LAUNCH_CATEGORIES.includes(c.id));
 }
 
-// 랭킹 롤링 칩 데이터 (설계서 §9-0): 활성 부문별 1위 구. Phase 1 = 👑·🔥 2종
+// 랭킹 롤링 칩 데이터 (설계서 §9-0): 활성 부문별 1위 구. Phase 1 = 👑·🔥 2종 (chip5 on 시 5종)
 export function rollingChips() {
-  return activeCategories().map((cat) => {
+  return activeCategories({ chip: true }).map((cat) => {
     const first = categoryRanking(cat.id)[0];
     return {
       categoryId: cat.id,

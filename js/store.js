@@ -15,6 +15,10 @@ const state = {
   user: { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false, firstTagDone: false },
   regionVotes: [], // { cityId, at } — 잠긴 지역 오픈 요청 투표 (§5)
   moderationQueue: [], // 부정어 감지 → 노출 보류 태그 id
+  // Phase 2 (A)군 — 서버 주간 결산 배치가 채우는 영속 데이터 (§8·§10 테이블).
+  // 프로토타입엔 배치가 없어 항상 빈 배열. FLAGS(masterTag/conquestMedal) 게이트와 함께 사용.
+  weeklyAwards: [], // { guId, week, category } — 부문별 주간 1위 이력 (마스터태그 칭호 근거)
+  hallOfFame: [], // { guId, week, tagId, category } — 부문별 1위 태그 박제 (정복 훈장 근거)
 };
 
 const DEFAULT_USER = { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false, firstTagDone: false };
@@ -24,8 +28,8 @@ export function getState() {
 }
 
 export function save() {
-  const { districts, tags, reactions, reports, dailyLimits, user, regionVotes, moderationQueue } = state;
-  localStorage.setItem(LS_KEY, JSON.stringify({ tags, reactions, reports, dailyLimits, user, regionVotes, moderationQueue,
+  const { districts, tags, reactions, reports, dailyLimits, user, regionVotes, moderationQueue, weeklyAwards, hallOfFame } = state;
+  localStorage.setItem(LS_KEY, JSON.stringify({ tags, reactions, reports, dailyLimits, user, regionVotes, moderationQueue, weeklyAwards, hallOfFame,
     districtLevels: districts.map((d) => ({ guId: d.guId, level: d.level, totalScore: d.totalScore })) }));
 }
 
@@ -93,6 +97,8 @@ export async function initStore() {
     state.user = { ...DEFAULT_USER, ...(p.user || {}) }; // 구 저장본에 없는 신규 필드 기본값 병합
     state.regionVotes = p.regionVotes || [];
     state.moderationQueue = p.moderationQueue || [];
+    state.weeklyAwards = p.weeklyAwards || []; // Phase 2: 서버 배치 미존재 시 빈 배열 유지
+    state.hallOfFame = p.hallOfFame || [];
     (p.districtLevels || []).forEach((dl) => {
       const d = state.districts.find((x) => x.guId === dl.guId);
       if (d) { d.level = dl.level; d.totalScore = dl.totalScore; }
