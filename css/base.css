@@ -50,6 +50,10 @@ body {
 /* 베이스 타일 없음: 민트 크림 단색 바탕 (§9-2, §4) */
 #map { height: 100%; background: var(--bg-map); }
 
+/* 승격 "감정 스밈" 구 색 파동을 부드럽게 — 구 폴리곤 채움 불투명도 변화에 트랜지션 (§2) */
+.leaflet-interactive { transition: fill-opacity 0.3s ease; }
+@media (prefers-reduced-motion: reduce) { .leaflet-interactive { transition: none; } }
+
 #data-credit {
   position: absolute;
   right: 6px;
