@@ -1,12 +1,12 @@
-/* 와이어프레임 전용 스타일 — design-brief.md 확정 전 임시 (회색 계열만).
-   라이트 모드 전용 (앱인토스 제약). v0.5 IA: 하단 탭 없음, 지도 전체화면 */
+/* 베이스 — 캔디 수채 (design-brief.md v1.0). 라이트 전용(앱인토스). v0.5 IA: 하단 탭 없음, 지도 전체화면.
+   색·서체·radius는 tokens.css 참조 (임의 hex 금지). */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
-  background: #fff;
-  color: #222;
+  font-family: var(--font-body);
+  background: var(--surface);
+  color: var(--ink);
   touch-action: pan-x pan-y; /* 페이지 핀치줌 차단 — fixed 요소가 뷰포트 밖으로 잘리는 문제 방지 */
 }
 
@@ -15,9 +15,14 @@ body {
   flex-direction: column;
   max-width: 480px;
   margin: 0 auto;
-  border-left: 1px solid #eee;
-  border-right: 1px solid #eee;
   overflow: hidden;
+}
+
+/* 자체 제작 SVG 아이콘 공통 (vibe-icons.svg) — 텍스트 옆 정렬 */
+.vibe-ic {
+  display: inline-block;
+  vertical-align: -0.16em;
+  flex: none;
 }
 
 #dev-bar {
@@ -42,15 +47,15 @@ body {
 
 #map-wrap { flex: 1; position: relative; }
 
-/* 베이스 타일 없음: 단색 배경 (§9-2). 색상 값은 디자인 이월 — 임시 회백색 */
-#map { height: 100%; background: #f3f3f1; }
+/* 베이스 타일 없음: 민트 크림 단색 바탕 (§9-2, §4) */
+#map { height: 100%; background: var(--bg-map); }
 
 #data-credit {
   position: absolute;
   right: 6px;
   bottom: 4px;
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.35);
+  color: rgba(70, 90, 80, 0.4);
   z-index: 900;
   pointer-events: none;
 }
@@ -60,10 +65,10 @@ body {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: #333;
+  background: var(--ink);
   color: #fff;
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 11px 18px;
+  border-radius: 999px;
   font-size: 13px;
   opacity: 0;
   pointer-events: none;
@@ -71,5 +76,26 @@ body {
   z-index: 3000;
   max-width: 90%;
 }
-
 #toast.show { opacity: 1; }
+
+/* 현장 리액션 순간 피드백 "현장 ×2!" (§9-1, v0.5.2) — 누른 자리 위로 팝 후 소멸 */
+.onsite-pop {
+  position: fixed;
+  transform: translate(-50%, -100%) scale(0.8);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(236, 100, 164, 0.4);
+  z-index: 3200;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s;
+}
+.onsite-pop.show { transform: translate(-50%, -130%) scale(1); opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .onsite-pop { transition: opacity 0.2s; }
+}

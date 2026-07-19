@@ -2,6 +2,7 @@
 // Phase 1: 총점+급상승 2부문만. 마스터태그는 Phase 2.
 import { activeCategories, categoryRanking, weeklyStats, myWeeklyContribution } from './../ranking.js';
 import { getTossKey } from './../mock-toss.js';
+import { icon } from './../icons.js';
 
 export function renderRankingSheet() {
   const my = myWeeklyContribution(getTossKey());
@@ -14,7 +15,7 @@ export function renderRankingSheet() {
       </li>`).join('');
     return `
       <section class="rank-section">
-        <h3>${cat.label}</h3>
+        <h3>${icon(cat.icon, 18)} ${cat.label}</h3>
         <ol class="rank-list">${rows || '<li class="empty">집계 대상 구가 없어요</li>'}</ol>
       </section>`;
   }).join('');
@@ -33,7 +34,7 @@ function emberSection() {
   if (!embers.length) return '';
   return `
     <section class="rank-section ember">
-      <h3>🔥 불씨</h3>
+      <h3>${icon('i-ember', 18)} 불씨</h3>
       <p class="ember-hint">이번 주 활성 기여자 10명이 모이면 랭킹에 들어가요</p>
       <p class="ember-list">${embers.map((d) => `${d.name}(${d.activeContributors}명)`).join(' · ')}</p>
     </section>`;

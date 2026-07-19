@@ -7,6 +7,25 @@ export function toast(message) {
   el._timer = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
+// 현장 리액션 순간 피드백 (§9-1, v0.5.2): 누르는 순간 "현장 ×2!" 액센트 필이 팝 후 소멸.
+// 상시 아이콘(📍) 없이 현장 2배를 알림. near = 기준 요소(눌린 버튼)면 그 위에 띄움.
+export function onsitePop(near) {
+  const el = document.createElement('div');
+  el.className = 'onsite-pop';
+  el.textContent = '현장 ×2!';
+  document.body.appendChild(el);
+  const r = near?.getBoundingClientRect?.();
+  if (r) {
+    el.style.left = r.left + r.width / 2 + 'px';
+    el.style.top = r.top - 6 + 'px';
+  } else {
+    el.style.left = '50%';
+    el.style.top = '38%';
+  }
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => el.remove(), 800);
+}
+
 const SHEETS = ['district', 'ranking', 'my'];
 
 // 시트는 유저 액션으로만 열림 (진입 즉시 자동 오픈 금지 — 앱인토스 검수)

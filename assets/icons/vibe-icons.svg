@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<!-- 우리동네 바이브 아이콘 세트 v1.0 · 자체 제작 SVG · viewBox 0 0 32 32 통일
+세트 규칙: 무윤곽 / 투톤 채움 / 좌상단 화이트 하이라이트 / 라운드 조인
+사용: <svg><use href="#i-funny"/></svg> -->
+<symbol id="i-like" viewBox="0 0 32 32">
+      <path d="M9 14 h4 v13 H9 a2 2 0 0 1 -2 -2 V16 a2 2 0 0 1 2 -2 Z" fill="#E8B93B"/>
+      <path d="M13 15 l4.5 -8.5 a2.6 2.6 0 0 1 4.8 1.8 L21.5 13 H26 a3 3 0 0 1 2.9 3.8 l-2 7.5 A4 4 0 0 1 23 27 H13 Z" fill="#FFDD66"/>
+      <circle cx="17" cy="11" r="1.6" fill="#fff" opacity=".55"/>
+    </symbol>
+<symbol id="i-funny" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="12" fill="#FFDD66"/>
+      <circle cx="12.5" cy="10.5" r="2.4" fill="#fff" opacity=".5"/>
+      <path d="M8.6 10.6 q3 0.4 4.4 2.6 q-1.4 2.2 -4.4 2.6" stroke="#7A5A00" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M23.4 10.6 q-3 0.4 -4.4 2.6 q1.4 2.2 4.4 2.6" stroke="#7A5A00" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M9.2 18 q6.8 3 13.6 0 q-0.6 7.6 -6.8 7.6 q-6.2 0 -6.8 -7.6 Z" fill="#7A5A00"/>
+      <path d="M11.4 22.2 q4.6 2.8 9.2 0 q-1.5 3.2 -4.6 3.2 q-3.1 0 -4.6 -3.2 Z" fill="#F293C1"/>
+      <path d="M9.2 18 q6.8 2.2 13.6 0 l-0.3 1.7 q-6.5 2 -13 0 Z" fill="#fff"/>
+    </symbol>
+<symbol id="i-hug" viewBox="0 0 32 32">
+      <path d="M16 27 q-9 -5.5 -11.2 -11.2 q-1.6 -4.3 2.2 -6.5 q3.6 -2 6.4 1.2 L16 13.2 l2.6 -2.7 q2.8 -3.2 6.4 -1.2 q3.8 2.2 2.2 6.5 Q25 21.5 16 27 Z" fill="#EC64A4"/>
+      <circle cx="11.6" cy="12" r="1.8" fill="#fff" opacity=".5"/>
+    </symbol>
+<symbol id="i-hip" viewBox="0 0 32 32">
+      <path d="M16 4 q1.4 7 4.5 8.5 q3.1 1.5 7 1.5 q-3.9 1.6 -6.4 3.4 Q18.6 19.2 16 27 q-2.6 -7.8 -5.1 -9.6 Q8.4 15.6 4.5 14 q3.9 0 7 -1.5 Q14.6 11 16 4 Z" fill="#FFDD66"/>
+      <path d="M16 4 q1.4 7 4.5 8.5 l-2.8 1.8 Q16.5 11 16 4 Z" fill="#fff" opacity=".45"/>
+      <circle cx="26" cy="24" r="2.2" fill="#FFDD66"/>
+      <circle cx="6.5" cy="6.5" r="1.6" fill="#F293C1"/>
+    </symbol>
+<symbol id="i-home" viewBox="0 0 32 32">
+      <path d="M16 5 l11 9 v11 a2 2 0 0 1 -2 2 H7 a2 2 0 0 1 -2 -2 V14 Z" fill="#3D82F6"/>
+      <path d="M16 5 l11 9 h-4.5 L16 9.4 9.5 14 H5 Z" fill="#2B62C4"/>
+      <rect x="13" y="18" width="6" height="9" rx="2" fill="#FFF6E8"/>
+      <circle cx="10" cy="10.8" r="1.5" fill="#fff" opacity=".5"/>
+    </symbol>
+<symbol id="i-flag" viewBox="0 0 32 32">
+      <path d="M10 4.5 L29 8 L23 11 L29 14 L10 17.5 Z" fill="#FF5A36" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" paint-order="stroke"/>
+      <path d="M10 4.5 L19.5 6.3 L10 8.6 Z" fill="#fff" opacity=".3"/>
+      <rect x="7.4" y="4" width="3.2" height="25" rx="1.6" fill="#8A6A45" stroke="#fff" stroke-width="1.4" paint-order="stroke"/>
+    </symbol>
+<symbol id="i-spot" viewBox="0 0 32 32">
+      <path d="M16 4 a9 9 0 0 1 9 9 q0 6.5 -9 15 q-9 -8.5 -9 -15 a9 9 0 0 1 9 -9 Z" fill="#EC64A4"/>
+      <circle cx="16" cy="13" r="3.6" fill="#fff"/>
+      <circle cx="12.4" cy="9.4" r="1.5" fill="#fff" opacity=".5"/>
+    </symbol>
+<symbol id="i-crown" viewBox="0 0 32 32">
+      <path d="M5 11 l6 4.5 L16 8 l5 7.5 L27 11 l-2.4 13 a2 2 0 0 1 -2 1.6 H9.4 a2 2 0 0 1 -2 -1.6 Z" fill="#FFDD66"/>
+      <path d="M5 11 l6 4.5 L16 8 l-1.8 5.4 -6.6 5 Z" fill="#fff" opacity=".28"/>
+      <circle cx="16" cy="19.5" r="2.2" fill="#EC64A4"/>
+      <circle cx="9.8" cy="21" r="1.5" fill="#3D82F6"/>
+      <circle cx="22.2" cy="21" r="1.5" fill="#3D82F6"/>
+    </symbol>
+<symbol id="i-fire" viewBox="0 0 32 32">
+      <path d="M16 4 q6.5 6 8 11.5 a8.2 8.2 0 1 1 -16 0 Q9.5 10 16 4 Z" fill="#FF5A36"/>
+      <path d="M16 13 q3.4 3.4 3.9 6.2 a4 4 0 1 1 -7.8 0 Q12.6 16.4 16 13 Z" fill="#FFDD66"/>
+      <circle cx="11.8" cy="12" r="1.6" fill="#fff" opacity=".4"/>
+    </symbol>
+<symbol id="i-ember" viewBox="0 0 32 32">
+      <path d="M16 9 q4.6 4.2 5.6 8 a5.8 5.8 0 1 1 -11.2 0 Q11.4 13.2 16 9 Z" fill="#C9CDD4"/>
+      <path d="M16 16.5 q1.9 1.9 2.2 3.5 a2.3 2.3 0 1 1 -4.4 0 Q14.1 18.4 16 16.5 Z" fill="#F0A56F"/>
+    </symbol>
+<symbol id="i-trophy" viewBox="0 0 32 32">
+      <path d="M10 6 h12 v7 a6 6 0 0 1 -12 0 Z" fill="#FFDD66"/>
+      <path d="M10 7.5 H5.5 q-.3 5.5 4.9 6.8 M22 7.5 h4.5 q.3 5.5 -4.9 6.8" stroke="#E8B93B" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <rect x="14.4" y="18.5" width="3.2" height="4" fill="#E8B93B"/>
+      <path d="M11 23 h10 a2 2 0 0 1 2 2 v2 H9 v-2 a2 2 0 0 1 2 -2 Z" fill="#C9A87B"/>
+      <circle cx="12.6" cy="8.6" r="1.5" fill="#fff" opacity=".45"/>
+    </symbol>
+<symbol id="i-medal" viewBox="0 0 32 32">
+      <path d="M11 4 h4.5 L13 12 H8.5 Z" fill="#3D82F6"/>
+      <path d="M21 4 h-4.5 L19 12 h4.5 Z" fill="#FF5A36"/>
+      <circle cx="16" cy="19" r="8" fill="#FFDD66"/>
+      <circle cx="16" cy="19" r="5.4" fill="#F6CB3C"/>
+      <path d="M16 15.5 l1.1 2.3 2.5 .3 -1.8 1.8 .4 2.5 -2.2 -1.2 -2.2 1.2 .4 -2.5 -1.8 -1.8 2.5 -.3 Z" fill="#fff"/>
+      <circle cx="12.8" cy="15.8" r="1.3" fill="#fff" opacity=".5"/>
+    </symbol>
+</svg>

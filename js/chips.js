@@ -2,6 +2,8 @@
 // 칩 = 현황판 + 랭킹 진입 버튼 겸용. Phase 1은 👑총점·🔥급상승 2종 롤링.
 import { CONFIG } from './config.js';
 import { rollingChips } from './ranking.js';
+import { icon } from './icons.js';
+import { escapeHtml } from './ui.js';
 
 let idx = 0;
 let timer = null;
@@ -24,5 +26,6 @@ export function renderChip() {
   const chips = rollingChips();
   if (!chips.length) return;
   const c = chips[idx % chips.length];
-  document.getElementById('rank-chip').textContent = `${c.icon} ${c.guName}`;
+  document.getElementById('rank-chip').innerHTML =
+    `${icon(c.icon, 16)}<span class="chip-gu">${escapeHtml(c.guName)}</span>`;
 }

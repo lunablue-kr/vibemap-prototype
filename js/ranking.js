@@ -80,7 +80,7 @@ export function rollingChips() {
     const first = categoryRanking(cat.id)[0];
     return {
       categoryId: cat.id,
-      icon: cat.label.split(' ')[0],
+      icon: cat.icon, // vibe-icons.svg 심볼 id
       guName: first ? first.name : '—',
     };
   });

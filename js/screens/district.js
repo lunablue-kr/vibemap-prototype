@@ -6,7 +6,8 @@ import { districtFeed } from './../tags.js';
 import { addReaction, myReaction } from './../reactions.js';
 import { reportTag, REPORT_REASONS } from './../moderation.js';
 import { getTossKey } from './../mock-toss.js';
-import { toast, escapeHtml, openSheet } from './../ui.js';
+import { toast, escapeHtml, openSheet, onsitePop } from './../ui.js';
+import { icon, PIN_ICON } from './../icons.js';
 
 let currentGuId = null;
 let currentSort = 'popular';
@@ -36,6 +37,7 @@ function handleClick(e) {
   if (reactBtn) {
     const r = addReaction(reactBtn.dataset.tag, reactBtn.dataset.react);
     if (!r.ok) { toast(r.message); return; }
+    if (r.isOnsite) onsitePop(reactBtn); // 현장 ×2! 순간 피드백 (§9-1)
     render();
     onDataChange?.(reactBtn.dataset.tag);
     return;
@@ -65,7 +67,7 @@ function render() {
     <div class="sheet-grab"></div>
     <div class="district-head">
       <h2>Lv.${d.level} ${d.name}</h2>
-      ${s.user.homeGuId === d.guId ? '<span class="home-badge">🏠 내 홈</span>' : ''}
+      ${s.user.homeGuId === d.guId ? `<span class="home-badge">${icon(PIN_ICON.home, 13)} 내 홈</span>` : ''}
     </div>
     <div class="sort-bar">
       <button data-sort="popular" class="${currentSort === 'popular' ? 'active' : ''}">리액션순</button>
@@ -81,14 +83,16 @@ function tagCard(t) {
   const mine = myReaction(t.id);
   const reactions = CONFIG.REACTION_TYPES.map((rt) => {
     const isMine = mine?.type === rt.id;
-    const onsite = isMine && mine.isOnsite ? '📍' : '';
     return `<button class="react-btn ${isMine ? 'mine' : ''}" data-tag="${t.id}" data-react="${rt.id}">
-      ${rt.emoji} ${t.counts[rt.id]}${onsite}</button>`;
+      ${icon(rt.icon, 15)} ${t.counts[rt.id]}</button>`;
   }).join('');
+  const origin = t.isResident
+    ? `${icon(PIN_ICON.home, 13)} 주민`
+    : `${icon(PIN_ICON.away, 13)} 방문`;
   return `
     <article class="tag-card">
       <div class="tag-card-head">
-        <span class="tag-origin">${t.isResident ? '🏠 주민' : '🚩 방문'}</span>
+        <span class="tag-origin">${origin}</span>
         <button class="report-btn" data-report="${t.id}">신고</button>
       </div>
       <p class="tag-text">${escapeHtml(t.text)}</p>

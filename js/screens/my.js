@@ -1,11 +1,20 @@
 // 마이 시트 (설계서 §9-0): 홈 지역구 설정(§5 규칙), 잔여 횟수, 뱃지·포인트·공유(Phase 2 자리)
 // 데이터 초기화는 개발 바(dev-bar) 전용 — 정식 화면에 두면 홈 쿨다운(§5) 우회 경로가 됨
-import { getState } from './../store.js';
+import { getState, getDistrict } from './../store.js';
 import { getLimitStatus, watchAdForBonus } from './../limits.js';
 import { setHome, cooldownLeftDays } from './../home.js';
 import { toast } from './../ui.js';
 
 let onDataChange = null;
+
+// 마이 아이콘 = 홈 구 이니셜 1자 원형 뱃지 (design-brief.md §7, 프로필 사진 없음)
+export function renderMyIcon() {
+  const s = getState();
+  const home = s.user.homeGuId ? getDistrict(s.user.homeGuId) : null;
+  const btn = document.getElementById('my-icon');
+  btn.textContent = home ? Array.from(home.name)[0] : '나'; // 홈 미설정 시 '나'
+  btn.classList.toggle('no-home', !home);
+}
 
 export function initMySheet(handlers) {
   onDataChange = handlers.onDataChange;
@@ -21,6 +30,7 @@ export function initMySheet(handlers) {
     const r = setHome(e.target.value || null);
     toast(r.message);
     renderMySheet();
+    renderMyIcon(); // 홈 변경 시 이니셜 뱃지 갱신
     if (r.ok) onDataChange?.();
   });
 }

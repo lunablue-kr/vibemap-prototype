@@ -6,7 +6,8 @@ import { addReaction, myReaction, reactionCounts } from './reactions.js';
 import { reportTag, REPORT_REASONS } from './moderation.js';
 import { getTossKey } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
-import { toast, escapeHtml, viewportBox } from './ui.js';
+import { toast, escapeHtml, viewportBox, onsitePop } from './ui.js';
+import { icon, REACTION_ICON, PIN_ICON } from './icons.js';
 
 let currentTagId = null;
 let onChange = null; // 리액션·신고 후 (지도 단일 갱신 등)
@@ -68,15 +69,17 @@ function render() {
 
   const reactions = CONFIG.REACTION_TYPES.map((rt) => {
     const isMine = mine?.type === rt.id;
-    const onsite = isMine && mine.isOnsite ? '📍' : '';
     return `<button class="react-btn ${isMine ? 'mine' : ''}" data-react="${rt.id}">
-      ${rt.emoji} ${counts[rt.id]}${onsite}</button>`;
+      ${icon(rt.icon, 16)} ${counts[rt.id]}</button>`;
   }).join('');
 
+  const origin = tag.isResident
+    ? `${icon(PIN_ICON.home, 14)} 주민`
+    : `${icon(PIN_ICON.away, 14)} 방문`;
   document.getElementById('tag-popup').innerHTML = `
     <div class="popup-head">
       <button class="popup-gu" data-gu="${tag.guId}">${gu.name} ›</button>
-      <span class="tag-origin">${tag.isResident ? '🏠 주민' : '🚩 방문'}</span>
+      <span class="tag-origin">${origin}</span>
       <button class="popup-more" data-more aria-label="더보기">⋯</button>
     </div>
     <p class="popup-text">${escapeHtml(tag.text)}</p>
@@ -97,6 +100,7 @@ function handleClick(e) {
   if (reactBtn) {
     const r = addReaction(currentTagId, reactBtn.dataset.react);
     if (!r.ok) { toast(r.message); return; }
+    if (r.isOnsite) onsitePop(reactBtn); // 현장 ×2! 순간 피드백 (§9-1)
     render();
     onChange?.(currentTagId);
     return;

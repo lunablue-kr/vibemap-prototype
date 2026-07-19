@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>서울 바이브맵 — 프로토타입 v2 (와이어프레임)</title>
+  <title>우리동네 바이브</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./css/tokens.css" />
   <link rel="stylesheet" href="./css/base.css" />
   <link rel="stylesheet" href="./css/components.css" />
 </head>
@@ -13,7 +17,7 @@
   <div id="dev-bar">
     <span>🧪 위치</span>
     <select id="dev-location"><option value="">꺼짐</option></select>
-    <span class="wireframe-badge">v2 와이어프레임</span>
+    <span class="wireframe-badge">v2 · 캔디 수채</span>
   </div>
 
   <!-- 지도 = 앱 (상시 전체화면, 하단 탭 없음) -->
@@ -23,7 +27,7 @@
     <!-- 플로팅 요소: 랭킹 롤링 칩(탭=랭킹 시트) + 마이 아이콘(탭=마이 시트) -->
     <div id="floating-top">
       <button id="rank-chip" aria-label="주간 랭킹 열기"></button>
-      <button id="my-icon" aria-label="마이 열기">😊</button>
+      <button id="my-icon" aria-label="마이 열기"></button>
     </div>
 
     <!-- 태그 완전체 카드 팝업 (1탭) -->

@@ -2,6 +2,7 @@
 import { CONFIG } from './config.js';
 import { initStore, getState, getDistrict, resetAll, snapIntoDistrict } from './store.js';
 import { loadDictionary } from './moderation.js';
+import { loadIcons } from './icons.js';
 import { initMap, refreshMap, updateSingleTag, renderTags, panToDistrict, invalidateMapSize, gentlePanTo, tagLatLng } from './map.js';
 import { getCurrentGuId, setCurrentGuId } from './mock-toss.js';
 import { toast, openSheet, closeSheets, anySheetOpen, initSheetDrag } from './ui.js';
@@ -10,7 +11,7 @@ import { initComposer, openComposer, closeComposer, isComposerOpen } from './com
 import { initChip, renderChip } from './chips.js';
 import { initDistrictSheet, openDistrict, refreshDistrict } from './screens/district.js';
 import { renderRankingSheet } from './screens/ranking.js';
-import { initMySheet, renderMySheet } from './screens/my.js';
+import { initMySheet, renderMySheet, renderMyIcon } from './screens/my.js';
 
 // iOS Safari는 뷰포트 메타·touch-action으로 페이지 핀치줌이 안 막힘 — 사파리 전용
 // 제스처 이벤트를 직접 차단 (지도 핀치줌은 Leaflet이 터치 이벤트로 자체 처리라 영향 없음)
@@ -20,7 +21,7 @@ import { initMySheet, renderMySheet } from './screens/my.js';
 
 async function main() {
   try {
-    await Promise.all([initStore(), loadDictionary()]);
+    await Promise.all([initStore(), loadDictionary(), loadIcons()]);
   } catch (e) {
     console.error('데이터 로드 실패', e);
     toast('데이터를 불러오지 못했어요. 새로고침으로 다시 시도해주세요.');
@@ -107,6 +108,7 @@ async function main() {
 
   initSheetDrag();
   initDevBar();
+  renderMyIcon();
   invalidateMapSize();
 }
 
