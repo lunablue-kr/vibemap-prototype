@@ -410,7 +410,7 @@
 .onboard-card {
   background: var(--surface); border-radius: 20px; padding: 28px 22px 22px;
   width: 100%; max-width: 340px; box-shadow: var(--sh-card); text-align: center;
-}
+} /* 진입 모션 없음 — 온보딩은 시그니처 모션 아님(§2 기능적 최소). 정적 표시로 항상 visible 보장 */
 .onboard-emoji { line-height: 0; margin-bottom: 10px; }
 .onboard-emoji svg { width: 40px; height: 40px; }
 .onboard-title { font-family: var(--font-display); font-size: 21px; color: var(--ink); margin-bottom: 8px; }
@@ -424,4 +424,9 @@
   min-height: 44px; cursor: pointer;
 }
 .onboard-city:active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-.onboard-skip { display: block; margin: 14px auto 0; border: none; background: none; color: var(--ink-soft); font-size: 13px; padding: 8px 12px; cursor: pointer; }
+/* 튜토리얼 팁 3가지 */
+.onboard-tips { list-style: none; text-align: left; margin: 4px 0 20px; display: flex; flex-direction: column; gap: 14px; }
+.onboard-tip { display: flex; align-items: center; gap: 12px; }
+.onboard-tip svg { width: 26px; height: 26px; flex: 0 0 26px; }
+.onboard-tip b { display: block; font-family: var(--font-display); font-size: 14px; color: var(--ink); }
+.onboard-tip span { display: block; font-size: 12px; color: var(--ink-soft); line-height: 1.4; }

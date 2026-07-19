@@ -11,8 +11,8 @@ const state = {
   reports: [],   // { tagId, tossKey, reason, createdAt }
   dailyLimits: {}, // { 'YYYY-MM-DD': { postsUsed, reactionsUsed, adBonus } }
   // homeGuId null 허용 (§5 v0.5.3: 홈 없는 비서울 구경꾼). originCity: 비서울 출신(오픈 투표 연결)
-  // firstTagDone: 첫 태그 축하 연출 1회성 트리거 (§4 초기 활성화)
-  user: { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false, firstTagDone: false },
+  // firstTagDone: 첫 태그 축하 1회성 트리거 (§4). loggedIn: 토스 로그인(첫 기여 시점 게이트, §2·§7)
+  user: { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false, firstTagDone: false, loggedIn: false },
   regionVotes: [], // { cityId, at } — 잠긴 지역 오픈 요청 투표 (§5)
   moderationQueue: [], // 부정어 감지 → 노출 보류 태그 id
   // Phase 2 (A)군 — 서버 주간 결산 배치가 채우는 영속 데이터 (§8·§10 테이블).
@@ -21,7 +21,7 @@ const state = {
   hallOfFame: [], // { guId, week, tagId, category } — 부문별 1위 태그 박제 (정복 훈장 근거)
 };
 
-const DEFAULT_USER = { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false, firstTagDone: false };
+const DEFAULT_USER = { homeGuId: null, homeChangedAt: null, originCity: null, onboarded: false, firstTagDone: false, loggedIn: false };
 
 export function getState() {
   return state;

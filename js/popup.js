@@ -4,7 +4,7 @@ import { CONFIG } from './config.js';
 import { getState, getDistrict } from './store.js';
 import { addReaction, myReaction, reactionCounts } from './reactions.js';
 import { reportTag, REPORT_REASONS } from './moderation.js';
-import { getTossKey } from './mock-toss.js';
+import { getTossKey, isLoggedIn, requireLogin } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
 import { toast, escapeHtml, viewportBox, reactionPop } from './ui.js';
 import { icon, PIN_ICON } from './icons.js';
@@ -102,6 +102,21 @@ function render() {
     </div>`;
 }
 
+// 리액션 반영 + 시각 피드백. 로그인 대기 중 팝업이 닫혔으면 리액션만 반영(시각 피드백 생략).
+function applyReaction(tagId, type) {
+  const r = addReaction(tagId, type);
+  if (!r.ok) { toast(r.message); return; }
+  if (currentTagId === tagId) { // 여전히 이 태그 팝업이 열려 있을 때만 피드백
+    const rt = CONFIG.REACTION_TYPES.find((x) => x.id === type);
+    const btn = document.querySelector(`#tag-popup [data-react="${type}"]`);
+    if (btn) reactionPop(btn, rt, r.isOnsite); // 누른 리액션 이름 + 현장 ×2 피드백 (§9-1)
+    render();
+    const b = document.querySelector(`#tag-popup [data-react="${type}"]`); // 재렌더 후 새 버튼
+    if (b) { b.classList.remove('reacted'); void b.offsetWidth; b.classList.add('reacted'); }
+  }
+  onChange?.(tagId);
+}
+
 function handleClick(e) {
   const guBtn = e.target.closest('[data-gu]');
   if (guBtn) {
@@ -111,16 +126,10 @@ function handleClick(e) {
   }
   const reactBtn = e.target.closest('[data-react]');
   if (reactBtn) {
-    const type = reactBtn.dataset.react;
-    const r = addReaction(currentTagId, type);
-    if (!r.ok) { toast(r.message); return; }
-    const rt = CONFIG.REACTION_TYPES.find((x) => x.id === type);
-    reactionPop(reactBtn, rt, r.isOnsite); // 누른 리액션 이름 + 현장 ×2 피드백 (§9-1)
-    render();
-    // 방금 반영된 버튼 탱글 팝
-    const b = document.querySelector(`#tag-popup [data-react="${type}"]`);
-    if (b) { b.classList.remove('reacted'); void b.offsetWidth; b.classList.add('reacted'); }
-    onChange?.(currentTagId);
+    const tagId = currentTagId, type = reactBtn.dataset.react; // 값 캡처(로그인 대기 중 재렌더·닫힘 대비)
+    // 첫 기여 시점 토스 로그인 게이트(§2·§7). 구경은 무마찰, 반응할 때만 로그인
+    if (!isLoggedIn()) { requireLogin().then((ok) => ok && applyReaction(tagId, type)); return; }
+    applyReaction(tagId, type);
     return;
   }
   if (e.target.closest('[data-more]')) {

@@ -6,11 +6,13 @@ import { getDistrict } from './store.js';
 import { createTag, canWriteIn } from './tags.js';
 import { canPost } from './limits.js';
 import { latLngToPagePoint } from './map.js';
+import { isLoggedIn, requireLogin } from './mock-toss.js';
 import { toast, viewportBox } from './ui.js';
 
 let pending = null; // { guId, lat, lng }
 let onCreated = null;
 let onOpenDistrict = null;
+let submitLocked = false; // 로그인 대기 중 재제출 방지
 
 export function initComposer(handlers) {
   onCreated = handlers.onCreated;
@@ -85,14 +87,26 @@ function handleClick(e) {
     return;
   }
   if (e.target.id === 'composer-submit') {
+    if (submitLocked || !pending) return; // 로그인 대기 중 재탭 방지(중복 태그·한도 소진 방지)
+    const snap = pending; // 값 캡처 — 로그인 대기 중 작성창이 닫혀도(팬·백 제스처) 안전
     const text = document.getElementById('composer-input').value;
-    const r = createTag(pending.guId, pending.lat, pending.lng, text);
-    if (r.ok) {
-      closeComposer();
-      onCreated?.(r); // r.firstTag/r.id → 첫 태그 축하 연출 (§4)
-      toast(r.firstTag ? '지도에 첫 태그를 남겼어요! 우리 동네의 바이브가 시작됐어요.' : r.message);
-    } else {
-      toast(r.message);
+    // 첫 기여 시점 토스 로그인 게이트(§2·§7). 구경은 무마찰, 쓸 때만 로그인
+    if (!isLoggedIn()) {
+      submitLocked = true;
+      requireLogin().then((ok) => { submitLocked = false; if (ok) submitTag(snap, text); });
+      return;
     }
+    submitTag(snap, text);
+  }
+}
+
+function submitTag(snap, text) {
+  const r = createTag(snap.guId, snap.lat, snap.lng, text);
+  if (r.ok) {
+    closeComposer();
+    onCreated?.(r); // r.firstTag/r.id → 첫 태그 축하 연출 (§4)
+    toast(r.firstTag ? '지도에 첫 태그를 남겼어요! 우리 동네의 바이브가 시작됐어요.' : r.message);
+  } else {
+    toast(r.message);
   }
 }
