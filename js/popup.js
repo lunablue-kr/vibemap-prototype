@@ -8,6 +8,7 @@ import { getTossKey } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
 import { toast, escapeHtml, viewportBox, onsitePop } from './ui.js';
 import { icon, REACTION_ICON, PIN_ICON } from './icons.js';
+import { weeklyTopTagIdByGu } from './ranking.js';
 
 let currentTagId = null;
 let onChange = null; // 리액션·신고 후 (지도 단일 갱신 등)
@@ -67,17 +68,27 @@ function render() {
   const counts = reactionCounts(tag.id);
   const mine = myReaction(tag.id);
 
-  const reactions = CONFIG.REACTION_TYPES.map((rt) => {
-    const isMine = mine?.type === rt.id;
-    return `<button class="react-btn ${isMine ? 'mine' : ''}" data-react="${rt.id}">
-      ${icon(rt.icon, 16)} ${counts[rt.id]}</button>`;
-  }).join('');
+  const isSeat = weeklyTopTagIdByGu()[tag.guId] === tag.id; // 현재 주 1위 고정석
+  const isStamped = !!tag.hofLocked; // 지난주 1위 박제 (명예의 전당)
+
+  // 박제(hofLocked)는 리액션 불가 — 버튼 자체를 제거 (설계서 §8·§9-3, 공감 인플레 방지)
+  const reactions = isStamped
+    ? `<p class="popup-hof">${icon('i-trophy', 15)} 명예의 전당 · 리액션할 수 없어요</p>`
+    : CONFIG.REACTION_TYPES.map((rt) => {
+        const isMine = mine?.type === rt.id;
+        return `<button class="react-btn ${isMine ? 'mine' : ''}" data-react="${rt.id}">
+          ${icon(rt.icon, 16)} ${counts[rt.id]}</button>`;
+      }).join('');
 
   const origin = tag.isResident
     ? `${icon(PIN_ICON.home, 14)} 주민`
     : `${icon(PIN_ICON.away, 14)} 방문`;
-  document.getElementById('tag-popup').innerHTML = `
+  const crown = isSeat ? `<span class="popup-crown">${icon('i-crown', 16)}</span>` : ''; // 고정석 왕관
+  const el = document.getElementById('tag-popup');
+  el.className = 'popup-card' + (isStamped ? ' stamped' : isSeat ? ' seat' : '');
+  el.innerHTML = `
     <div class="popup-head">
+      ${crown}
       <button class="popup-gu" data-gu="${tag.guId}">${gu.name} ›</button>
       <span class="tag-origin">${origin}</span>
       <button class="popup-more" data-more aria-label="더보기">⋯</button>

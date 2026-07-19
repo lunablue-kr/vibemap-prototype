@@ -162,6 +162,16 @@
   box-shadow: var(--sh-card);
 }
 
+/* 고정석 팝업 = 왕관 + 골드 크림 헤더 느낌 / 박제 팝업 = 골드 테두리 + 리액션 라벨 */
+.popup-card.seat { box-shadow: 0 0 0 2px var(--gold), var(--sh-card); }
+.popup-card.stamped { box-shadow: 0 0 0 2px var(--gold-deep), var(--sh-card); }
+.popup-crown { display: inline-flex; align-items: center; line-height: 0; }
+.popup-hof {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  font-size: 13px; color: var(--gold-deep); background: #FFF6E0;
+  border-radius: 12px; padding: 11px;
+}
+
 .popup-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .popup-gu {
   border: none;
