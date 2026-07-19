@@ -36,29 +36,37 @@ export function openSheet(name) {
   document.getElementById('sheet-dim').hidden = false;
 }
 
-// 시트 스와이프 다운 닫기 (그랩바·타이틀 영역에서 아래로 90px 이상 끌면 닫힘)
+// 시트 스와이프 다운 닫기: 그랩바·타이틀에서, 또는 콘텐츠가 최상단(scrollTop 0)일 때
+// 아래로 90px 이상 끌면 닫힘 (맨 끝까지 올라간 시트를 한 번 더 당겨 닫는 관례)
 export function initSheetDrag() {
   SHEETS.forEach((s) => {
     const el = document.getElementById('sheet-' + s);
     let startY = null;
     let dragging = false;
+    let moved = false;
     el.addEventListener('touchstart', (e) => {
-      if (!e.target.closest('.sheet-grab, .sheet-title-row, .district-head')) return;
+      const onHandle = !!e.target.closest('.sheet-grab, .sheet-title-row, .district-head');
+      // 그랩·타이틀은 항상 / 콘텐츠는 최상단일 때만 (스크롤 중이면 스크롤에 양보)
+      if (!onHandle && el.scrollTop > 0) { dragging = false; return; }
       startY = e.touches[0].clientY;
       dragging = true;
-      el.style.transition = 'none';
+      moved = false;
     }, { passive: true });
     el.addEventListener('touchmove', (e) => {
       if (!dragging) return;
-      const dy = Math.max(0, e.touches[0].clientY - startY);
+      const dy = e.touches[0].clientY - startY;
+      if (dy <= 0) return; // 위로 스와이프는 스크롤에 맡김
+      moved = true;
+      if (e.cancelable) e.preventDefault(); // 콘텐츠 스크롤·바운스 방지
+      el.style.transition = 'none';
       el.style.transform = `translate(-50%, ${dy}px)`;
-    }, { passive: true });
+    }, { passive: false });
     el.addEventListener('touchend', (e) => {
       if (!dragging) return;
       dragging = false;
       el.style.transition = '';
       el.style.transform = '';
-      if (e.changedTouches[0].clientY - startY > 90) closeSheets();
+      if (moved && e.changedTouches[0].clientY - startY > 90) closeSheets();
     });
   });
 }

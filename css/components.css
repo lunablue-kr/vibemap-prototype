@@ -297,8 +297,7 @@
   box-shadow: 0 -8px 30px rgba(214, 69, 131, 0.12);
 }
 .sheet.open { transform: translate(-50%, 0); }
-.sheet.bottom { max-height: 60%; }
-.sheet.full { height: 88%; }
+.sheet.full { height: 88%; } /* 구 상세·랭킹·마이 전부 동일 높이로 통일 */
 
 .sheet-grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 2px auto 12px; }
 .sheet-title-row { display: flex; justify-content: space-between; align-items: center; }
