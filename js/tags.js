@@ -65,9 +65,9 @@ export function visibleTags(guId) {
 }
 
 // 자리싸움 크기 단계 (설계서 §9-3 v0.5.4): 기준 수치는 "최근 SIZE_WINDOW_DAYS 리액션 수"(누적 아님).
-// 3 이상 = 중간, 구 내 상위 10 = 큰 크기. guRank는 같은 기준의 구 내 순위 (0부터)
-export function sizeTier(total, guRank) {
-  if (total >= CONFIG.PROMOTE_MID_THRESHOLD && guRank < CONFIG.BIG_TOP_N) return 'big';
+// count 기반 3단계 — 인기가 크기로 그대로 드러나게(구 내 순위 기반이던 것을 v0.5.4에서 변경).
+export function sizeTier(total) {
+  if (total >= CONFIG.PROMOTE_BIG_THRESHOLD) return 'big';
   if (total >= CONFIG.PROMOTE_MID_THRESHOLD) return 'mid';
   return 'small';
 }
@@ -88,8 +88,8 @@ export function tagsForMap() {
   Object.values(byGu).forEach((list) => {
     list.sort((a, b) => b.counts.total - a.counts.total || b.createdAt - a.createdAt);
     list.forEach((t, rank) => {
-      t.guRank = rank;
-      t.tier = sizeTier(t.counts.total, rank);
+      t.guRank = rank; // 노출 순위(cap·prefix)용 — 크기는 count 기반이라 rank 무관
+      t.tier = sizeTier(t.counts.total);
     });
   });
   return byGu; // { guId: [순위순 태그] }

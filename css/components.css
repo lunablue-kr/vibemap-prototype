@@ -94,8 +94,8 @@
 .tag-marker.mid { box-shadow: 0 2px 5px rgba(214, 69, 131, 0.22); }
 .tag-marker.big { box-shadow: 0 4px 9px rgba(214, 69, 131, 0.28); }
 .tag-marker.small { font-size: 10px; padding: 2px 8px; border-radius: 999px; }
-.tag-marker.mid { font-size: 12px; padding: 3px 9px; border-radius: 999px; }
-.tag-marker.big { font-size: 13.5px; padding: 4px 11px; border-radius: 999px; }
+.tag-marker.mid { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; }
+.tag-marker.big { font-size: 15px; padding: 4px 12px; border-radius: 999px; } /* 위계 강화(v0.5.4) — 인기 태그가 확 크게 */
 
 /* 시그니처 "감정 스밈": 승격/리액션 순간 말풍선 탱글 팝(스프링) — brief §2 */
 @keyframes tag-pop {

@@ -34,13 +34,14 @@ export const CONFIG = {
   SIZE_WINDOW_DAYS: 7, // 지도 크기·고정석 산정 창 (최근 7일 리액션 수)
   TAG_ACTIVE_DAYS: 15, // 작성 후 이 기간까지 리액션 가능. 지나면 잠금 + 지도에서 내려 구 상세 "지난 기록"으로
 
-  // 승격·자리싸움 (§6, §9-3 확정) — 기준 수치는 "최근 SIZE_WINDOW_DAYS 리액션 수"
-  PROMOTE_MID_THRESHOLD: 3, // 합산 3 = 중간 크기
-  BIG_TOP_N: 10, // 구 내 합산 상위 10개만 큰 크기
+  // 승격·자리싸움 (§9-3) — 기준 수치는 "최근 SIZE_WINDOW_DAYS 리액션 수". 크기는 count 기반 3단계(연속 위계)
+  PROMOTE_MID_THRESHOLD: 3, // 이 수 이상 = 중간 크기
+  PROMOTE_BIG_THRESHOLD: 8, // 이 수 이상 = 큰 크기 (v0.5.4: 구 내 순위 기반 → count 기반으로. 인기가 크기로 드러나게)
+  BIG_TOP_N: 10, // (레거시) 구당 큰 크기 표시 상한 참고값 — 현재 sizeTier는 count 기반이라 미사용
   INITIAL_ZOOM_BOOST: 0.9, // 시작 줌: 전체 fit보다 이만큼 확대 (좌우 살짝 잘림 감수, §9-2). 세로 여백 축소. 최소 줌도 이 값으로 고정
-  MAP_CAP_FAR: 1, // 서울 전체 줌: 구당 상위 1~2개 (과밀 방지로 1)
-  MAP_CAPS_BY_ZOOM: { 11: 3, 12: 6, 13: 10 }, // 줌인할수록 상위 10개까지 점진 확대 (§9-3)
-  MAP_NEAR_ZOOM: 11, // 이 줌 이상부터 구당 상한 확대 시작
+  MAP_CAP_FAR: 2, // 서울 전체 줌(시작 뷰 ~11.2): 구당 2개 (첫 화면이 허전하지 않게, v0.5.4: 1→2)
+  MAP_CAPS_BY_ZOOM: { 11.4: 4, 12: 7, 13: 10 }, // 줌인할수록 상위 10개까지 점진 확대 (§9-3)
+  MAP_NEAR_ZOOM: 11.4, // 시작 줌(~11.2) 위 — 그 전(시작 뷰)은 cap 2·전부 small, 여기서부터 확대
   LABEL_FULLSIZE_ZOOM: 12.5, // 이 줌 이상부터 크기 단계(big/mid) 표시 — 이르면 라벨이 커져 노출 수가 역행함
   LABEL_CHARS: { big: 12, mid: 9, small: 6 }, // 크기 단계별 표시 글자수 (1줄 제한)
 

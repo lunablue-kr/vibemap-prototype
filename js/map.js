@@ -153,21 +153,30 @@ function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP, seat = false) {
     `<span class="tag-marker ${tier}${seatCls}${stampCls}" data-tag="${t.id}" style="${style}">${crown}${count}${textHtml}</span>`;
 }
 
+// 줌에 따른 표시 크기 단계 (2단계 완화 — 급변 팝 방지, v0.5.4):
+// 근접 줌(MAP_NEAR_ZOOM)부터 mid까지, 풀사이즈 줌(LABEL_FULLSIZE_ZOOM)부터 big까지 드러난다.
+// 이르게 big을 풀면 라벨이 커져 노출 수가 역행하므로(§9-3) 두 단계로 나눠 완만하게 키운다.
+function zoomTier(tier, zoom) {
+  if (zoom >= CONFIG.LABEL_FULLSIZE_ZOOM) return tier; // 전체 단계
+  if (zoom >= CONFIG.MAP_NEAR_ZOOM) return tier === 'big' ? 'mid' : tier; // big은 한 단계 낮춰
+  return 'small';
+}
+
 // 줌별 구당 표시 상한 (§9-3): 전체 뷰 = 1개, 줌인할수록 상위 10개까지 점진 확대
 function guCap() {
-  const zoom = Math.floor(map.getZoom());
+  const zoom = map.getZoom(); // 소수 임계(11.4 등) 비교 위해 floor 안 함
   let cap = CONFIG.MAP_CAP_FAR;
-  Object.entries(CONFIG.MAP_CAPS_BY_ZOOM).forEach(([z, c]) => {
-    if (zoom >= Number(z)) cap = c;
-  });
+  Object.entries(CONFIG.MAP_CAPS_BY_ZOOM)
+    .sort((a, b) => Number(a[0]) - Number(b[0])) // 오름차순 — 가장 높은 충족 임계가 최종
+    .forEach(([z, c]) => { if (zoom >= Number(z)) cap = c; });
   return cap;
 }
 
 // 라벨 픽셀 크기 근사 (충돌 계산용)
 function labelBox(t, tier) {
   const chars = Math.min(Array.from(t.text).length, CONFIG.LABEL_CHARS[tier]);
-  const px = tier === 'big' ? 14 : tier === 'mid' ? 12 : 10;
-  return { w: 44 + chars * px, h: tier === 'big' ? 30 : tier === 'mid' ? 24 : 18 };
+  const px = tier === 'big' ? 15 : tier === 'mid' ? 13 : 10; // CSS font-size와 맞춘 충돌 근사
+  return { w: 44 + chars * px, h: tier === 'big' ? 32 : tier === 'mid' ? 25 : 18 };
 }
 
 export function renderTags() {
@@ -236,19 +245,21 @@ export function renderTags() {
     const anchor = useCentroid ? d.centroid : [t.lat, t.lng];
     const pp = map.project(anchor, zoom); // 줌에만 의존하는 절대 픽셀 좌표
 
-    // 크기: LABEL_FULLSIZE_ZOOM부터 §9-3 크기 단계, 그 전엔 전부 작게.
-    // 큰 크기가 자리를 못 잡으면 생략 대신 작은 크기로 강등 시도 — 확대 중 태그가 사라지는 역행 방지.
+    // 크기: 줌 2단계(zoomTier)로 완만하게 드러남. 자리를 못 잡으면 작은 크기로 강등 시도(생략 대신).
     // 배치: 상하 1칸까지만 밀어내기, 밀린 위치는 자기 구 안이어야 함 (§9-3 "구 경계 안에서만")
-    const tiersToTry =
-      zoom >= CONFIG.LABEL_FULLSIZE_ZOOM && t.tier !== 'small' ? [t.tier, 'small'] : ['small'];
+    const zTier = zoomTier(t.tier, zoom);
+    const tiersToTry = zTier !== 'small' ? [zTier, 'small'] : ['small'];
     let placement = null;
     for (const tier of tiersToTry) {
       const box = labelBox(t, tier);
       const h = box.h * 0.9;
       const { tx, bx } = placeBoxX(pp, box);
       const usable = (dy) => {
-        // 상단 킵아웃: 화면 위 고정 UI(개발 바·칩·마이) 밑으로 못 들어가게 (화면 안 핀만)
-        if (pinInView(pp) && pp.y + dy - box.h / 2 < vb.min.y + TOP_KEEPOUT) return false;
+        // 상단 킵아웃: 박스가 "화면 안(가로) + 상단 띠(칩·마이 영역)"에 실제로 걸치면 배제.
+        // 핀이 화면 밖이어도 박스는 화면 안으로 뻗어 상단 UI를 침범할 수 있으므로 박스 기준으로 판정.
+        const boxTop = pp.y + dy - box.h / 2, boxBottom = pp.y + dy + box.h / 2;
+        const onScreenX = bx + box.w / 2 > vb.min.x && bx - box.w / 2 < vb.max.x;
+        if (onScreenX && boxBottom > vb.min.y && boxTop < vb.min.y + TOP_KEEPOUT) return false;
         const hit = placedBoxes.some(
           (p) => Math.abs(p.x - bx) < (p.w + box.w) / 2 && Math.abs(p.y - (pp.y + dy)) < (p.h + box.h) / 2
         );
@@ -269,9 +280,10 @@ export function renderTags() {
         const tier = 'small';
         const box = labelBox(t, tier);
         const { tx, bx } = placeBoxX(pp, box);
-        // 상단 킵아웃만은 지킴 (화면 안 핀만 — 화면 밖 태그를 화면으로 끌어오지 않기)
+        // 상단 킵아웃: 박스가 화면 안(가로)일 때만 아래로 밀어 상단 UI를 피함 (usable과 동일 기준)
+        const onScreenX = bx + box.w / 2 > vb.min.x && bx - box.w / 2 < vb.max.x;
         const minY = vb.min.y + TOP_KEEPOUT + box.h / 2;
-        const dy = pinInView(pp) && pp.y < minY ? minY - pp.y : 0;
+        const dy = onScreenX && pp.y < minY ? minY - pp.y : 0;
         placement = { tier, box, dy, bx, tx };
       } else {
         blockedGu.add(t.guId); // 이 구는 여기서 끊음 — 하위 순위가 먼저 튀어나오는 것 방지
@@ -311,9 +323,9 @@ export function updateSingleTag(tagId) {
   );
   // 임계값 돌파 시 크기 단계 즉시 반영 (§9-3 체감 실시간 승격. 구 내 순위 재계산은 재배치 시)
   const prevTier = entry.tag.tier;
-  const tier = sizeTier(counts.total, entry.tag.guRank);
+  const tier = sizeTier(counts.total);
   const t = { ...entry.tag, counts, topType, tier };
-  const displayTier = map.getZoom() < CONFIG.LABEL_FULLSIZE_ZOOM ? 'small' : tier;
+  const displayTier = zoomTier(tier, map.getZoom());
   const seat = topByGuCache[t.guId] === tagId; // 캐시된 고정석 기준(전체 재계산은 moveend renderTags에서만)
   entry.marker.setIcon(
     L.divIcon({ html: tagHtml(t, displayTier, entry.offsetY || 0, entry.tx ?? 9, seat), className: 'tag-marker-wrap', iconSize: null })
