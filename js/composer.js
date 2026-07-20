@@ -2,7 +2,7 @@
 // 터치 지점에 입력창 생성. 머리 `○○구 ›` (태그 0개 구의 상세 진입로 겸함). ✕로 닫힘.
 // 위치 규칙 위반 시 입력창 대신 같은 말풍선에 안내문.
 import { CONFIG } from './config.js';
-import { getDistrict } from './store.js';
+import { getDistrict, getState } from './store.js';
 import { createTag, canWriteIn } from './tags.js';
 import { canPost } from './limits.js';
 import { latLngToPagePoint } from './map.js';
@@ -35,11 +35,15 @@ export function openComposer(guId, lat, lng) {
   const notice = eligible.ok && !eligible.isResident
     ? '지금 계신 동네에 대한 태그를 남겨주세요'
     : '';
+  // 생애주기 고지(§6): 첫 태그 때 1회만. 매번 붙이면 진입 정보량 과다 → 상시 노출 안 함
+  const lifeNotice = getState().user.firstTagDone
+    ? ''
+    : ` · 태그는 ${CONFIG.TAG_ACTIVE_DAYS}일 동안 지도에 남아요`;
   const body = !eligible.ok
     ? `<p class="composer-blocked">${eligible.message}</p>`
     : !canPost()
     ? `<p class="composer-blocked">오늘 태그 작성 횟수를 다 썼어요. 광고를 보면 ${CONFIG.AD_BONUS_POSTS}회 충전돼요.</p>`
-    : `<p class="hint">${notice ? notice + ' · ' : ''}특정 가게에 대한 부정적 후기는 삭제될 수 있어요</p>
+    : `<p class="hint">${notice ? notice + ' · ' : ''}특정 가게에 대한 부정적 후기는 삭제될 수 있어요${lifeNotice}</p>
        <textarea id="composer-input" rows="2" maxlength="${CONFIG.TAG_MAX_LENGTH}"
          placeholder="이 동네의 지금 분위기를 한 줄로"></textarea>
        <div class="composer-foot">
