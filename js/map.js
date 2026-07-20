@@ -1,12 +1,12 @@
 // 메인 지도 (설계서 v0.5 §9-2, §9-3)
 // 베이스 타일 없음: 단색 배경 + 구 폴리곤 + 태그. 더블탭은 Leaflet 기본 줌 제스처로 예약.
-// 자리싸움: 크기 단계(§9-3)·줌별 구당 표시 상한·앵커(탭 좌표)·고정석(주간 1위 = 구 중심).
+// 자리싸움: 크기 단계(§9-3)·줌별 구당 표시 상한·앵커(탭 좌표)·고정석(지금 1위 = 구 중심).
 // 색·음영: design-brief.md v1.0 "캔디 수채" 팔레트 (tokens.css 변수, §4 안료 가장자리).
 import { CONFIG } from './config.js';
 import { getState } from './store.js';
 import { tagsForMap, sizeTier } from './tags.js';
-import { reactionCounts } from './reactions.js';
-import { weeklyTopTagIdByGu } from './ranking.js';
+import { recentReactionCounts } from './reactions.js';
+import { topTagIdByGu } from './ranking.js';
 import { escapeHtml } from './ui.js';
 import { icon, PIN_ICON } from './icons.js';
 import { buildPalette, levelFill, levelEdge } from './palette.js';
@@ -18,7 +18,7 @@ let tagLayerGroup = null;
 let guLabelGroup = null;
 let programmaticMove = false; // 앱 주도 이동 중 (오버레이 자동 닫힘 예외)
 let markersByTagId = {};
-let topByGuCache = {}; // 구별 주간 1위 태그 id (renderTags에서 계산, updateSingleTag가 재사용)
+let topByGuCache = {}; // 구별 '지금 1위' 태그 id (renderTags에서 계산, updateSingleTag가 재사용)
 let handlers = {}; // { onTagClick(tagId), onEmptyTap(guId, lat, lng) }
 
 export function initMap(h) {
@@ -145,7 +145,7 @@ function tagHtml(t, displayTier, offsetY = 0, offsetX = PIN_GAP, seat = false) {
   // 지도 라벨엔 최다 리액션 아이콘만(숫자 제거 — 사용자 결정. 정확한 수치는 팝업·구 상세에). 크기가 인기를 표현
   const count = t.counts.total > 0 ? `${icon(t.topType.icon, csz)} ` : '';
   const style = `transform: translate(${offsetX}px, calc(-50% + ${offsetY}px));`;
-  // 이번주1위(골드 필)·지난주1위 박제(라벤더 필) 둘 다 왕관 (design-brief §7 "크라운은 둘 다 골드 유지")
+  // 이 동네 1위(골드 필)·지난주1위 박제(라벤더 필) 둘 다 왕관 (design-brief §7 "크라운은 둘 다 골드 유지")
   const seatCls = seat ? ' seat' : '';
   const stampCls = isHof(t) ? ' stamped' : '';
   const crown = (seat || isHof(t)) ? `<span class="seat-crown">${icon('i-crown', csz + 3)}</span>` : '';
@@ -175,7 +175,7 @@ export function renderTags() {
   markersByTagId = {};
   const s = getState();
   const byGu = tagsForMap();
-  const topByGu = weeklyTopTagIdByGu();
+  const topByGu = topTagIdByGu();
   topByGuCache = topByGu; // updateSingleTag 재사용 (매 리액션 전체 재계산 방지, §9-3)
   const cap = guCap();
 
@@ -184,8 +184,8 @@ export function renderTags() {
   //    k위가 자리를 못 잡으면 그 구의 k+1위 이하도 그 줌에서는 노출하지 않는다.
   // 2. 줌이 깊어질수록 구당 상한(cap)이 늘어 2위, 3위…가 순서대로 추가된다.
   // 3. 배치 우선권은 전역 리액션 합산순 (동률이면 구 내 순위 우선).
-  // 4. [예외] 고정석(주간 1위, §9-3)은 cap·prefix와 무관하게 항상 표시.
-  //    누적 순위와 주간 순위가 벌어져도 "이번 주 1위 = 구 중심"은 불변.
+  // 4. [예외] 고정석(지금 1위, §9-3)은 cap·prefix와 무관하게 항상 표시.
+  //    표시 순위와 벌어져도 "지금 1위 = 구 중심"은 불변.
   // 지역 추가·실시간 순위 변동에도 이 규칙이 유지되어야 함.
   const shown = Object.entries(byGu)
     .flatMap(([guId, list]) => {
@@ -304,7 +304,7 @@ export function updateSingleTag(tagId) {
     delete markersByTagId[tagId];
     return;
   }
-  const counts = reactionCounts(tagId);
+  const counts = recentReactionCounts(tagId); // 지도 크기·아이콘은 최근 창 기준 (tagsForMap과 동일)
   const topType = CONFIG.REACTION_TYPES.reduce(
     (best, rt) => (counts[rt.id] > counts[best.id] ? rt : best),
     CONFIG.REACTION_TYPES[0]

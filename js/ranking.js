@@ -1,8 +1,8 @@
 // 주간 랭킹·구 레벨 (설계서 §8)
 // 출시 시점: 총점 + 급상승 2부문만 활성 (LAUNCH_CATEGORIES). 5부문 로직은 준비 완료.
 import { CONFIG } from './config.js';
-import { getState } from './store.js';
-import { weeklyReactionScore } from './reactions.js';
+import { getState, isArchived } from './store.js';
+import { weeklyReactionScore, recentReactionCounts } from './reactions.js';
 
 // 이번 주 시작 (월요일 0시)
 export function weekStart() {
@@ -90,21 +90,26 @@ export function rollingChips() {
   });
 }
 
-// 구별 주간 1위 태그 id (자리싸움 고정석: 구 중심 고정 — §9-3)
-export function weeklyTopTagIdByGu() {
+// 구별 "지금 1위" 태그 id (고정석: 구 중심 고정 — §9-3 v0.5.4).
+// 지도 크기와 "같은 지표"(최근 SIZE_WINDOW_DAYS 리액션 수)를 쓴다 — 작은 태그에 1위 배지가 붙는 모순 제거.
+// 주간 결산(구 랭킹·5부문·구 레벨·명예의 전당)은 고정 주간(월~일) 그대로 별도 레이어로 유지.
+export function topTagIdByGu() {
   const s = getState();
-  const ws = weekStart();
   const result = {};
   s.districts.forEach((d) => {
     let best = null;
-    let bestScore = -1;
+    let bestCount = 0; // 최근 리액션 1개 이상이어야 고정석
+    let bestAt = 0;
     s.tags.forEach((t) => {
-      if (t.guId !== d.guId || t.state !== 'public') return;
-      // 실제 점수 기준과 동일하게 현장 2배·주간 캡 반영
-      const score = weeklyReactionScore(t.id, ws);
-      if (score > bestScore) { best = t.id; bestScore = score; }
+      if (t.guId !== d.guId || t.state !== 'public' || isArchived(t)) return;
+      const c = recentReactionCounts(t.id).total;
+      // 동률이면 최신 우선 — tagsForMap 정렬(total desc, createdAt desc)과 일치시켜
+      // 지도 1위 슬롯과 고정석 배지가 서로 다른 태그에 붙지 않게 한다
+      if (c > bestCount || (c === bestCount && c > 0 && t.createdAt > bestAt)) {
+        best = t.id; bestCount = c; bestAt = t.createdAt;
+      }
     });
-    if (best && bestScore > 0) result[d.guId] = best;
+    if (best) result[d.guId] = best;
   });
   return result;
 }

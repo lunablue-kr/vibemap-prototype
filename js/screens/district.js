@@ -1,14 +1,14 @@
 // 구 상세 바텀시트 (설계서 §9-0): 태그 리스트(리액션순/최신순), 주민·방문자 구분, 신고 직접 노출
 // 침전 태그·최신순은 지도에 안 보이므로 이 리스트가 커뮤니티 필터 구조의 전제.
 import { CONFIG } from './../config.js';
-import { getState, getDistrict } from './../store.js';
-import { districtFeed } from './../tags.js';
+import { getState, getDistrict, isArchived } from './../store.js';
+import { districtFeed, archivedTags } from './../tags.js';
 import { addReaction, myReaction } from './../reactions.js';
 import { reportTag, REPORT_REASONS } from './../moderation.js';
 import { getTossKey, isLoggedIn, requireLogin } from './../mock-toss.js';
 import { toast, escapeHtml, openSheet, reactionPop } from './../ui.js';
 import { icon, PIN_ICON } from './../icons.js';
-import { weeklyTopTagIdByGu } from './../ranking.js';
+import { topTagIdByGu } from './../ranking.js';
 import { isHof } from './../phase2.js';
 
 let currentGuId = null;
@@ -74,8 +74,9 @@ function render() {
   const d = getDistrict(currentGuId);
   if (!d) return;
   const s = getState();
-  const feed = districtFeed(currentGuId, currentSort);
-  const seatId = weeklyTopTagIdByGu()[currentGuId]; // 이번 주 1위 고정석
+  const feed = districtFeed(currentGuId, currentSort); // 활성 태그만
+  const archived = archivedTags(currentGuId); // 지난 기록 (지도에선 내려감, 여기서만 봄)
+  const seatId = topTagIdByGu()[currentGuId]; // 지금 1위 고정석
 
   // 고정석·박제는 정렬과 무관하게 리스트 최상단 고정 (지도 §9-3 우선 노출을 리스트에도 반영)
   const seatTag = feed.find((t) => t.id === seatId);
@@ -97,16 +98,24 @@ function render() {
     <div class="district-feed">
       ${ordered.length ? ordered.map((t) => tagCard(t, seatId)).join('') : '<p class="empty">아직 태그가 없어요. 지도의 빈 곳을 눌러 첫 태그를 남겨주세요!</p>'}
     </div>
+    ${archived.length ? `<section class="archive-section">
+      <h3>지난 기록</h3>
+      <p class="hint">기간이 지나 지도에서 내려간 태그예요. 대신 기록은 여기 그대로 남아요.</p>
+      ${archived.map((t) => tagCard(t, seatId)).join('')}
+    </section>` : ''}
     <p class="hint">태그 작성은 지도에서 빈 곳을 터치하면 돼요</p>`;
 }
 
 function tagCard(t, seatId) {
-  const isSeat = t.id === seatId; // 이번 주 1위 (리액션 O)
+  const isSeat = t.id === seatId; // 지금 이 동네 1위 (리액션 O)
   const isStamped = isHof(t); // 지난주 1위 박제 (리액션 X, §8·§9-3) — hallOfFame 플래그 게이트
+  const archivedTag = isArchived(t); // 활성 기간 종료 → 잠금 (§6 v0.5.4)
   const mine = myReaction(t.id);
-  // 박제는 리액션 버튼 제거 → 명예의 전당 라벨로 대체 (팝업과 동일 처리)
+  // 박제·지난 기록은 리액션 버튼 제거 → 안내 라벨로 대체 (팝업과 동일 처리)
   const reactions = isStamped
     ? `<p class="hof-note">${icon('i-trophy', 14)} 명예의 전당 · 리액션할 수 없어요</p>`
+    : archivedTag
+    ? `<p class="hof-note archived">지난 기록 · 리액션 기간이 끝났어요</p>`
     : CONFIG.REACTION_TYPES.map((rt) => {
         const isMine = mine?.type === rt.id;
         return `<button class="react-btn ${isMine ? 'mine' : ''}" data-tag="${t.id}" data-react="${rt.id}">
@@ -116,11 +125,11 @@ function tagCard(t, seatId) {
     ? `${icon(PIN_ICON.home, 13)} 주민`
     : `${icon(PIN_ICON.away, 13)} 방문`;
   const rank = isSeat
-    ? `<span class="rank-badge seat">${icon('i-crown', 13)} 이번 주 1위</span>`
+    ? `<span class="rank-badge seat">${icon('i-crown', 13)} 이 동네 1위</span>`
     : isStamped
     ? `<span class="rank-badge stamped">${icon('i-crown', 13)} 지난주 1위 · 명예의 전당</span>`
     : '';
-  const cardCls = isSeat ? ' seat' : isStamped ? ' stamped' : '';
+  const cardCls = isSeat ? ' seat' : isStamped ? ' stamped' : archivedTag ? ' archived' : '';
   return `
     <article class="tag-card${cardCls}">
       <div class="tag-card-head">

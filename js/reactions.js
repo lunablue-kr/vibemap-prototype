@@ -1,7 +1,7 @@
 // 리액션 4종 로직 (설계서 §5, §6)
 // 어디서나 가능. 현장(그 구에 있거나 홈 구)은 점수 2배 (v0.5.2: 상시 📍 삭제 → 누르는 순간 "현장 ×2!" 피드백). 태그당 유저 1개.
 import { CONFIG } from './config.js';
-import { getState, save, getDistrict } from './store.js';
+import { getState, save, getDistrict, isArchived } from './store.js';
 import { getTossKey, getCurrentGuId, sendFunctionalMessage } from './mock-toss.js';
 import { canReact, useReaction } from './limits.js';
 import { isHof } from './phase2.js';
@@ -11,12 +11,28 @@ export function myReaction(tagId) {
   return s.reactions.find((r) => r.tagId === tagId && r.tossKey === getTossKey()) || null;
 }
 
+// 누적 전체 집계 — 태그의 "기록"(팝업·구 상세 카드 표시용)
 export function reactionCounts(tagId) {
   const s = getState();
   const counts = { total: 0 };
   CONFIG.REACTION_TYPES.forEach((rt) => { counts[rt.id] = 0; });
   s.reactions.forEach((r) => {
     if (r.tagId !== tagId) return;
+    counts[r.type]++;
+    counts.total++;
+  });
+  return counts;
+}
+
+// 최근 창(SIZE_WINDOW_DAYS) 집계 — 지도 크기·고정석 판정용 (§9-3 v0.5.4).
+// 롤링이라 주간 리셋 절벽이 없고, 반응이 끊기면 자연히 작아진다(자연 침전).
+export function recentReactionCounts(tagId) {
+  const s = getState();
+  const since = Date.now() - CONFIG.SIZE_WINDOW_DAYS * 86400000;
+  const counts = { total: 0 };
+  CONFIG.REACTION_TYPES.forEach((rt) => { counts[rt.id] = 0; });
+  s.reactions.forEach((r) => {
+    if (r.tagId !== tagId || r.createdAt < since) return;
     counts[r.type]++;
     counts.total++;
   });
@@ -36,6 +52,8 @@ export function addReaction(tagId, type) {
   // Phase 2: 명예의 전당 이월 태그(hofLocked)는 리액션 불가 — hallOfFame 플래그 게이트(isHof).
   // 플래그 off면 hofLocked 시드도 일반 태그처럼 리액션 가능.
   if (isHof(tag)) return { ok: false, message: '명예의 전당 태그에는 리액션할 수 없어요.' };
+  // 활성 기간(§6 TAG_ACTIVE_DAYS) 종료 → 잠금. 지난 기록으로만 남는다
+  if (isArchived(tag)) return { ok: false, message: '기간이 지난 태그라 리액션할 수 없어요.' };
   if (myReaction(tagId)) return { ok: false, message: '이미 리액션한 태그예요.' };
   if (!canReact()) return { ok: false, message: '오늘 리액션 횟수를 다 썼어요. 내일 다시 채워져요.' };
 

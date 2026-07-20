@@ -4,7 +4,7 @@
 /* 주아(Jua)는 400 단일 웨이트 — h2/h3 기본 볼드(700)면 합성 볼드로 둥근 획이 뭉개짐.
    디스플레이 폰트 헤더는 항상 400 유지 (§5 "둥근 획 = 캔디 결"). */
 .sheet-title-row h2, .district-head h2, .rank-section h3, .my-section h3,
-.onboard-title, .onboard-tip b { font-weight: 400; }
+.onboard-title, .onboard-tip b, .archive-section h3 { font-weight: 400; }
 
 .btn {
   padding: 11px 16px;
@@ -76,7 +76,7 @@
   pointer-events: auto;
 }
 
-/* 이번주 1위 = 골드 크림 필 / 지난주 1위 박제 = 라벤더 필 (색으로 시기 구분, §7). 박제는 리액션 비활성(popup·상세) */
+/* 이 동네 1위 = 골드 크림 필 / 지난주 1위 박제 = 라벤더 필 (색으로 시기 구분, §7). 박제는 리액션 비활성(popup·상세) */
 .tag-marker.seat { background: var(--seat-fill); }
 .tag-marker.stamped { background: var(--stamp-fill); }
 .tag-marker .seat-crown {
@@ -174,7 +174,7 @@
 }
 .popup-card.show { opacity: 1; transform: none; }
 
-/* 이번주 1위 팝업 = 골드 크림 필 / 지난주 1위 박제 팝업 = 라벤더 필 (색으로 시기 구분) */
+/* 이 동네 1위 팝업 = 골드 크림 필 / 지난주 1위 박제 팝업 = 라벤더 필 (색으로 시기 구분) */
 .popup-card.seat { background: var(--seat-soft); }
 .popup-card.stamped { background: var(--stamp-card); }
 .popup-crown { display: inline-flex; align-items: center; line-height: 0; }
@@ -343,7 +343,7 @@
 .sort-bar button.active { color: var(--accent); background: var(--accent-soft); font-weight: 700; }
 
 .tag-card { background: #FCFAFB; border: 1px solid var(--line); border-radius: 14px; padding: 13px; margin-bottom: 10px; }
-/* 이번 주 1위 = 골드 크림 카드 / 지난주 1위 박제 = 라벤더 카드 (색으로 시기 구분) */
+/* 이 동네 1위 = 골드 크림 카드 / 지난주 1위 박제 = 라벤더 카드 (색으로 시기 구분) */
 .tag-card.seat { background: var(--seat-soft); border-color: #F3E4B8; }
 .tag-card.stamped { background: var(--stamp-card); border-color: var(--stamp-fill); }
 .tag-card-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 8px; }
@@ -352,6 +352,13 @@
 .rank-badge.seat { background: var(--seat-fill); color: #7A5A00; }
 .rank-badge.stamped { background: var(--stamp-soft); color: var(--stamp-ink); }
 .hof-note { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--stamp-ink); padding: 6px 2px; }
+/* 지난 기록 (§6 활성 기간 종료 — 지도에서 내려가고 구 상세에만 남음) */
+.hof-note.archived { color: var(--ink-soft); }
+/* 아카이브는 배경으로만 가라앉힌다 — 카드 전체 opacity를 쓰면 캡션·신고 버튼까지 흐려져 판독 불가 */
+.tag-card.archived { background: var(--surface-soft); border-color: var(--line); }
+.archive-section { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.archive-section h3 { font-family: var(--font-display); font-size: 15px; color: var(--ink-soft); margin-bottom: 4px; }
+.archive-section .hint { margin-bottom: 10px; }
 .report-btn { border: none; background: none; color: var(--ink-faint); font-size: 12px; cursor: pointer; padding: 10px; margin: -10px -10px 0 0; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: flex-end; }
 .tag-text { font-size: 14.5px; margin-bottom: 10px; line-height: 1.45; }
 .tag-card-foot { display: flex; gap: 6px; flex-wrap: wrap; }

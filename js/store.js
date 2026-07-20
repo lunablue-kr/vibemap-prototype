@@ -114,6 +114,17 @@ export function getDistrict(guId) {
   return state.districts.find((d) => d.guId === guId);
 }
 
+// 태그 생애주기 (§6·§9-3 v0.5.4): 작성 후 TAG_ACTIVE_DAYS가 지나면 리액션 잠금 + 지도에서 내려
+// 구 상세 "지난 기록"으로만 남는다. 명예의 전당 박제는 활성 기간과 무관하게 그 주 노출을 보장하므로 예외.
+// (tags.js ↔ reactions.js 순환 의존을 피하려고 공통 의존인 store에 둔다)
+export function isArchived(tag) {
+  if (!tag) return false;
+  // 박제 예외는 hallOfFame 플래그가 켜졌을 때만 (phase2.isHof와 같은 게이트 계약).
+  // 플래그 off면 hofLocked 시드도 일반 태그처럼 활성 기간이 지나면 아카이브된다.
+  if (tag.hofLocked && CONFIG.FLAGS.hallOfFame) return false;
+  return Date.now() - tag.createdAt > CONFIG.TAG_ACTIVE_DAYS * 86400000;
+}
+
 // 터치 지점이 구 경계에 너무 가까우면(핀 소속이 모호해 보임) 무게중심 쪽으로 당겨 보정
 const BOUNDARY_MARGIN = 0.0008; // 위도 기준 약 80m
 export function snapIntoDistrict(guId, lat, lng) {

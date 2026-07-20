@@ -1,10 +1,10 @@
 // 태그 작성·조회 로직 (설계서 §5, §6)
 import { CONFIG } from './config.js';
-import { getState, save } from './store.js';
+import { getState, save, isArchived } from './store.js';
 import { getTossKey, getCurrentGuId } from './mock-toss.js';
 import { checkText } from './moderation.js';
 import { canPost, usePost } from './limits.js';
-import { reactionCounts } from './reactions.js';
+import { reactionCounts, recentReactionCounts } from './reactions.js';
 
 // 글쓰기 자격: 홈 지역구는 위치 무관, 타 지역구는 현재 위치가 그 구일 때만
 export function canWriteIn(guId) {
@@ -64,19 +64,21 @@ export function visibleTags(guId) {
   return s.tags.filter((t) => t.state === 'public' && (!guId || t.guId === guId));
 }
 
-// 자리싸움 크기 단계 (설계서 §9-3): 합산 3 이상 = 중간, 구 내 상위 10 = 큰 크기
-// guRank는 구 내 리액션 합산 순위 (0부터)
+// 자리싸움 크기 단계 (설계서 §9-3 v0.5.4): 기준 수치는 "최근 SIZE_WINDOW_DAYS 리액션 수"(누적 아님).
+// 3 이상 = 중간, 구 내 상위 10 = 큰 크기. guRank는 같은 기준의 구 내 순위 (0부터)
 export function sizeTier(total, guRank) {
   if (total >= CONFIG.PROMOTE_MID_THRESHOLD && guRank < CONFIG.BIG_TOP_N) return 'big';
   if (total >= CONFIG.PROMOTE_MID_THRESHOLD) return 'mid';
   return 'small';
 }
 
-// 지도 표시용: 구별 리액션 합산 순위·크기 단계·최다 리액션 종류 포함
+// 지도 표시용 (§9-3 v0.5.4): 아카이브 태그는 지도에서 제외.
+// 크기·구 내 순위·최다 리액션 아이콘은 전부 "최근 SIZE_WINDOW_DAYS" 기준 — 롤링이라 절벽 없이
+// 반응이 끊기면 자연 침전한다. 누적 수치는 팝업·구 상세(기록)에서만 쓴다.
 export function tagsForMap() {
   const byGu = {};
-  visibleTags().forEach((t) => {
-    const counts = reactionCounts(t.id);
+  visibleTags().filter((t) => !isArchived(t)).forEach((t) => {
+    const counts = recentReactionCounts(t.id);
     const topType = CONFIG.REACTION_TYPES.reduce(
       (best, rt) => (counts[rt.id] > counts[best.id] ? rt : best),
       CONFIG.REACTION_TYPES[0]
@@ -93,10 +95,20 @@ export function tagsForMap() {
   return byGu; // { guId: [순위순 태그] }
 }
 
-// 구 상세 피드 정렬 (리액션순/최신순)
+// 구 상세 피드 = 활성 태그만 (리액션순/최신순). 표시 수치는 누적(그 태그의 기록)
 export function districtFeed(guId, sort) {
-  const list = visibleTags(guId).map((t) => ({ ...t, counts: reactionCounts(t.id) }));
+  const list = visibleTags(guId)
+    .filter((t) => !isArchived(t))
+    .map((t) => ({ ...t, counts: reactionCounts(t.id) }));
   if (sort === 'popular') list.sort((a, b) => b.counts.total - a.counts.total);
   else list.sort((a, b) => b.createdAt - a.createdAt);
   return list;
+}
+
+// 지난 기록 = 활성 기간이 끝나 잠긴 태그. 지도에선 내려가고 구 상세에만 남는다 (최신순)
+export function archivedTags(guId) {
+  return visibleTags(guId)
+    .filter((t) => isArchived(t))
+    .map((t) => ({ ...t, counts: reactionCounts(t.id) }))
+    .sort((a, b) => b.createdAt - a.createdAt);
 }

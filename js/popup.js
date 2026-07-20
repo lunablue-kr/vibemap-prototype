@@ -1,14 +1,14 @@
 // 태그 완전체 카드 팝업 (설계서 §9-1)
 // 구성: ① 머리 `○○구 ›` (상세 진입) ② 태그 전문 ③ 리액션 4종 수+버튼 ④ ⋯ → 신고 (한 겹 숨김)
 import { CONFIG } from './config.js';
-import { getState, getDistrict } from './store.js';
+import { getState, getDistrict, isArchived } from './store.js';
 import { addReaction, myReaction, reactionCounts } from './reactions.js';
 import { reportTag, REPORT_REASONS } from './moderation.js';
 import { getTossKey, isLoggedIn, requireLogin } from './mock-toss.js';
 import { tagScreenPoint } from './map.js';
 import { toast, escapeHtml, viewportBox, reactionPop } from './ui.js';
 import { icon, PIN_ICON } from './icons.js';
-import { weeklyTopTagIdByGu } from './ranking.js';
+import { topTagIdByGu } from './ranking.js';
 import { isHof } from './phase2.js';
 
 let currentTagId = null;
@@ -70,12 +70,15 @@ function render() {
   const counts = reactionCounts(tag.id);
   const mine = myReaction(tag.id);
 
-  const isSeat = weeklyTopTagIdByGu()[tag.guId] === tag.id; // 현재 주 1위 고정석
+  const isSeat = topTagIdByGu()[tag.guId] === tag.id; // 지금 이 동네 1위 고정석
   const isStamped = isHof(tag); // 지난주 1위 박제 (명예의 전당) — hallOfFame 플래그 게이트
+  const archivedTag = isArchived(tag); // 활성 기간 종료 → 잠금 (§6 v0.5.4)
 
-  // 박제(hofLocked)는 리액션 불가 — 버튼 자체를 제거 (설계서 §8·§9-3, 공감 인플레 방지)
+  // 박제·지난 기록은 리액션 불가 — 버튼 자체를 제거 (설계서 §8·§9-3, 공감 인플레 방지)
   const reactions = isStamped
     ? `<p class="popup-hof">${icon('i-trophy', 15)} 명예의 전당 · 리액션할 수 없어요</p>`
+    : archivedTag
+    ? `<p class="popup-hof archived">지난 기록 · 리액션 기간이 끝났어요</p>`
     : CONFIG.REACTION_TYPES.map((rt) => {
         const isMine = mine?.type === rt.id;
         return `<button class="react-btn ${isMine ? 'mine' : ''}" data-react="${rt.id}">
